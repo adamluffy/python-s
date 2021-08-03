@@ -1,0 +1,60 @@
+'''
+this example
+is created by
+the legendary programmer
+'''
+
+
+int n, val 
+double res = 2.5
+char name[10] , list
+
+n++
+++n
+
+if 3 {
+    res = 20
+} else {
+    val = 12
+} 
+
+when (val){
+    10 -> {
+        val = 3
+    },
+    else->{
+        val = 5
+    }
+}
+
+for(i in val){
+    val = 30
+}
+
+while time<10 {
+    pr = 12 + 13 * 14
+}
+
+val = if(3) 10 else 23
+
+val = when{
+    3->23,
+    3,4->50,
+    else->100
+}
+
+def add():int {
+    int a,b
+    return a+b
+}
+
+def func1(int ab=2, int c):int{
+    d = ab+c 
+    return d 
+}
+
+# shorthand function
+def func2():float => 2.4
+
+print()
+print("Hello world")

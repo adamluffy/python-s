@@ -1,0 +1,6 @@
+./vscode
+pys
+symtab_dump.out
+revisit_queue.out
+python-s.tab.*
+lex.yy.c
