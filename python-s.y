@@ -10,6 +10,8 @@
 	void yyerror();
 %}
 
+%glr-parser 
+
 /* token definition */
 %token CHAR INT FLOAT DOUBLE DEFINE IF BOOL ELSE ELIF WHEN WHILE FOR CONTINUE BREAK VOID RETURN
 %token ADDOP MULOP DIVOP INCR OROP ANDOP NOTOP EQUOP  IN ARROW
@@ -24,7 +26,9 @@
 %left OROP
 %left ANDOP
 %left EQUOP
+%left IN 
 %left RELOP
+%left RANGE
 %left ADDOP
 %left MULOP DIVOP
 %right NOTOP MINUS INCR
@@ -60,11 +64,11 @@ statement: assignment  | declaration | control_statement  | simple_statement
 
 assignment: variable ASSIGN expression;
 
-increment: prefix_inc %prec INCR | postfix_inc;
+increment: prefix_inc | postfix_inc;
 
 postfix_inc: ID INCR;
 
-prefix_inc: INCR ID;
+prefix_inc: INCR ID %prec INCR;
 
 simple_statement: CONTINUE | BREAK;
 
@@ -108,7 +112,7 @@ loop_statement: for_statement | while_statement;
 for_statement: FOR LPAREN for_condition RPAREN control_structure_body;
 
 for_condition:  assignment SEMI expression SEMI ID INCR
-	| ID IN variable;
+	| in_expression;
 
 while_statement: WHILE expression control_structure_body;
 
@@ -120,8 +124,7 @@ array: LBRACK expression RBRACK;
 /* expression */
 expression: simple_expression 
 	| simple_expression RELOP simple_expression
-	| if_expression
-	| when_expression
+	| control_expression
 	| function_call
 	| increment
 ;
@@ -132,11 +135,19 @@ term: factor | term MULOP factor | term DIVOP factor;
 
 factor: ID | constant | parenthesis_expression | ID LBRACK expression RBRACK | NOTOP factor;
 
-constant: numeric_constant | CCONST | STRING;
+constant: numeric_constant | signed_num | CCONST | STRING;
 
 numeric_constant: ICONST | FCONST;
 
+signed_num: ADDOP constant %prec MINUS;
+
 parenthesis_expression: LPAREN expression RPAREN;
+
+range_expression: ICONST RANGE ICONST | CCONST RANGE CCONST;
+
+in_expression: ID IN range_expression;
+
+control_expression: if_expression | when_expression;
 
 if_expression: IF parenthesis_expression expression else_expression;
 
