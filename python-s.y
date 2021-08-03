@@ -1,4 +1,5 @@
 %{
+	#include "semantic.c"
 	#include "symtab.c"
 	#include <stdio.h>
 	#include <stdlib.h>
@@ -10,13 +11,24 @@
 	void yyerror();
 %}
 
-%glr-parser 
+
+%union{
+	char cval;
+	int ival;
+	double dval;
+	char* sval;
+	listNode *symtab_item;
+}
 
 /* token definition */
-%token CHAR INT FLOAT DOUBLE DEFINE IF BOOL ELSE ELIF WHEN WHILE FOR CONTINUE BREAK VOID RETURN
-%token ADDOP MULOP DIVOP INCR OROP ANDOP NOTOP EQUOP  IN ARROW
-%token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE SEMI COLON DOT COMMA ASSIGN NEWLINE RANGE SHORTHAND
-%token ID ICONST FCONST CCONST STRING TRUE FALSE
+%token <ival> CHAR INT FLOAT DOUBLE DEFINE IF BOOL ELSE ELIF WHEN WHILE FOR CONTINUE BREAK VOID RETURN
+%token <ival> ADDOP MULOP DIVOP INCR OROP ANDOP NOTOP EQUOP  IN ARROW
+%token <ival> LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE SEMI COLON DOT COMMA ASSIGN NEWLINE RANGE SHORTHAND
+%token <symtab_item> ID 
+%token <ival> ICONST
+%token <dval> FCONST
+%token <cval> CCONST
+%token <sval> STRING
 
 %start program
 
@@ -36,11 +48,13 @@
 
 %%
 
+
+
 program: statements;
 
-declaration: type names;
+declaration: { declare = 1; } type names { declare = 0; } SEMI;
 
-names: names COMMA variable | names COMMA init 
+names: names COMMA variable | names COMMA init
 	| variable | init;
 
 init: variable_init | array_init;
@@ -59,7 +73,7 @@ type: INT | FLOAT | DOUBLE | CHAR;
 statements: statement | statements statement;
 
 statement: assignment  | declaration | control_statement  | simple_statement
-		| loop_statement | function_declaration
+		| loop_statement | function
 		| function_call | increment;
 
 assignment: variable ASSIGN expression;
@@ -166,33 +180,31 @@ when_else_expr: ELSE ARROW expression | /* empty */;
 
 
 /* functions */
-function_call: ID LPAREN optional_call_params RPAREN;
+function_call: ID LPAREN call_params RPAREN;
 
-call_params: call_params COMMA expression | expression;
+call_params: call_param | /* empty */;
 
-optional_call_params: call_params | /* empty */;
+call_param: call_param COMMA expression | expression;
 
-function_declaration: full_func_decl | shorthand_function;
-
-full_func_decl: function_head function_body;
-
-shorthand_function: function_head SHORTHAND expression;
+function: { incr_scope(); }function_head function_body {hide_scope();};
 
 function_head: DEFINE ID LPAREN optional_parameters RPAREN COLON return_type;
 
-function_body: LBRACE statements return_statment RBRACE;
+function_body: LBRACE statements return_optional RBRACE | SHORTHAND expression;
 
-parameters: parameter_declaration | parameter_declaration COMMA parameters;
+parameters: parameters COMMA parameter |  parameter;
 
-parameter_declaration: type ID | default_parameter;
+parameter: { declare = 1; } type param_init { declare = 0; };
 
-default_parameter: type ID ASSIGN constant;
+param_init: variable_init | variable;
 
 optional_parameters: parameters | /* empty */;
 
 return_type: type | VOID; 
 
-return_statment: RETURN expression;
+return_statement: RETURN expression;
+
+return_optional: return_statement | /* empty */;
 
 %%
 

@@ -5,6 +5,7 @@
 	#include <stdlib.h>
 	#include <string.h>
 	#include "symtab.h"
+	#include "semantic.h"
 	#include "python-s.tab.h"
 	extern FILE *yyin;
 	extern FILE *yyout;
@@ -43,8 +44,6 @@ STRING		\"{print}*\"
 "float"			{ return FLOAT; }
 "double"		{ return DOUBLE; }
 "bool"			{ return BOOL; }
-"true"			{ return TRUE; }
-"false"			{ return FALSE; }
 "if"			{ return IF; }
 "else"			{ return ELSE; }
 "elif"			{ return ELIF; }
@@ -89,12 +88,17 @@ STRING		\"{print}*\"
 {ID} 			{
 					// insert identifier into symbol table
 					insert(yytext, strlen(yytext), UNDEF, lineno);
+					yylval.symtab_item = lookup(yytext);
 					return ID;
 				}
-{ICONST} 		{ return ICONST; }
-{FCONST} 		{ return FCONST; }
-{CCONST} 		{ return CCONST; }
-{STRING} 		{ return STRING; }
+{ICONST} 		{ yylval.ival = atoi(yytext); return ICONST; }
+{FCONST} 		{ yylval.dval = atof(yytext); return FCONST; }
+{CCONST} 		{ yylval.cval = yytext[0]; return CCONST; }
+{STRING} 		{ 
+					yylval.sval = malloc(yyleng*sizeof(char));
+					strcpy(yylval.sval, yytext);
+					return STRING; 
+				}
 
 
 "\n"			{ lineno += 1;}
