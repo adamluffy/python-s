@@ -45,8 +45,25 @@ typedef struct listNode{
 	struct listNode *next;
 }listNode;
 
+typedef struct revisitQueue{
+
+	// name of identifier
+    char *st_name;
+	
+    // type of revisit
+    int revisit_type;
+
+    // maybe additional information to simplify the process ...
+
+    struct revisitQueue *next;
+
+}revisitQueue;
+
+#define PARAM_CHECK 1 /* Check parameters of function call when functions gets declared */
+
 /* the hash table */
 static listNode **hash_table;
+static revisitQueue *queue;
 
 // Function Declarations
 void init_hash_table(); // initialize hash table
@@ -67,3 +84,8 @@ int get_type(char *name); // get the type of an entry
 Parameter def_param(int par_type, char *param_name, int passing); // define parameter
 int func_declare(char *name, int ret_type, int num_of_pars, Parameter *parameters); // declare function
 int func_param_check(char *name, int num_of_pars, Parameter *parameters); // check parameters
+
+// Revisit Queue function
+void add_to_queue(char *name, int type); // add to queue
+int revisit(char *name); // revisit entry by also removing it from queue
+void revisit_dump(FILE *of); // dump file

@@ -72,6 +72,8 @@ type: INT | FLOAT | DOUBLE | CHAR;
 /* statements */
 statements: statement | statements statement;
 
+statements_optional: statements | /* empty */;
+
 statement: assignment  | declaration | control_statement  | simple_statement
 		| loop_statement | function
 		| function_call | increment;
@@ -137,11 +139,19 @@ array: LBRACK expression RBRACK;
 
 /* expression */
 expression: simple_expression 
-	| simple_expression RELOP simple_expression
+	| conditional_expression
 	| control_expression
 	| function_call
 	| increment
 ;
+
+conditional_expression: relation_expression | boolean_expression;
+
+relation_expression: simple_expression  RELOP simple_expression;
+
+boolean_expression: simple_expression OROP simple_expression
+	| simple_expression ANDOP simple_expression
+	| simple_expression EQUOP simple_expression;
 
 simple_expression: term | simple_expression ADDOP term;
 
@@ -188,9 +198,9 @@ call_param: call_param COMMA expression | expression;
 
 function: { incr_scope(); }function_head function_body {hide_scope();};
 
-function_head: DEFINE ID LPAREN optional_parameters RPAREN COLON return_type;
+function_head: { declare = 1; }DEFINE ID LPAREN optional_parameters RPAREN COLON return_type { declare = 0; };
 
-function_body: LBRACE statements return_optional RBRACE | SHORTHAND expression;
+function_body: LBRACE statements_optional return_optional RBRACE | SHORTHAND expression;
 
 parameters: parameters COMMA parameter |  parameter;
 
@@ -219,16 +229,29 @@ int main (int argc, char *argv[]){
 	// initialize symbol table
 	init_hash_table();
 
+	queue = NULL;
+
 	// parsing
 	int flag;
 	yyin = fopen(argv[1], "r");
 	flag = yyparse();
 	fclose(yyin);
+
+	printf("Parsing finished!\n");
+
+	if(queue!=NULL){
+		printf("Warning: Something has not been checked in the revisit queue!\n");
+	}
 	
 	// symbol table dump
 	yyout = fopen("symtab_dump.out", "w");
 	symtab_dump(yyout);
 	fclose(yyout);	
+
+	// revisit queue dump
+	yyout = fopen("revisit_dump.out", "w");
+	revisit_dump(yyout);
+	fclose(yyout);
 	
 	return flag;
 }

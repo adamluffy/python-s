@@ -64,7 +64,7 @@ STRING		\"{print}*\"
 "/"						{ return DIVOP; }
 "or"					{ return OROP; }
 "and"					{ return ANDOP; }
-"not"						{ return NOTOP; }
+"not"					{ return NOTOP; }
 "=="|"!="				{ return EQUOP; }
 ">"|"<"|">="|"<="		{ return RELOP; }
 
