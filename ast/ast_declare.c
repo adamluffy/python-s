@@ -1,4 +1,4 @@
-#include "ast_declare.h"
+
 
 ASTNode *newASTNodeDecl(int data_type, listNode** names){
 

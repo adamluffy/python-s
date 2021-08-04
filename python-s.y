@@ -1,7 +1,7 @@
 %{
 	#include "semantic.c"
 	#include "symtab.c"
-	#include "ast.c"
+	#include "ast.h"
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <string.h>

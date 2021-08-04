@@ -1,4 +1,4 @@
-#include "ast.h"
+
 
 // Node for 'for statement'
 typedef struct ASTNodeFor{
@@ -32,3 +32,7 @@ typedef struct ASTNodeWhile {
     struct ASTNode *while_branch;
 
 }ASTNodeWhile;
+
+ASTNode *newASTForNode(ASTNode *initialize, ASTNode *condition, 
+                    ASTNode *increment, ASTNode *for_branch);
+ASTNode *newASTWhileNode(ASTNode *condition, ASTNode *while_branch);

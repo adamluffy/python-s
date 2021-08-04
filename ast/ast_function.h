@@ -1,5 +1,3 @@
-#include "ast.h"
-#include "symtab.h"
 
 // node for function call
 typedef struct ASTNodeFuncCall{
@@ -11,6 +9,7 @@ typedef struct ASTNodeFuncCall{
 
     // call parameters;
     struct ASTNode **params;
+    int num_of_pars;
 
 }ASTNodeFuncCall;
 
@@ -41,3 +40,7 @@ typedef struct ASTNodeReturn{
     struct ASTNode *ret_val;
     
 }ASTNodeReturn;
+
+ASTNode *newASTFuncCallNode(listNode *entry, ASTNode **params, int num_of_pars);
+ASTNode *newASTFuncDeclNode(int ret_type, listNode *entry);
+ASTNode *newASTReturnNode(int ret_type, ASTNode *ret_val);

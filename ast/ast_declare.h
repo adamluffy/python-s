@@ -1,5 +1,3 @@
-#include "ast.h"
-#include "symtab.h"
 
 typedef struct ASTNodeDecl{
 
@@ -10,6 +8,7 @@ typedef struct ASTNodeDecl{
 
 	// symbol table entries of the variables
 	listNode** names;
+	int names_count;
     
 }ASTNodeDecl;
 

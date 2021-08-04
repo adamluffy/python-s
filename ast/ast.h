@@ -6,6 +6,9 @@ typedef enum Node_Type{
 	// statements
 	IF_NODE,     // if statement
 	ELSIF_NODE,  // else if branch
+    WHEN_NODE,
+    WHEN_BODY_NODE,
+    WHEN_ENTRY_NODE,
 	FOR_NODE,    // for statement
 	WHILE_NODE,  // while statement
 	ASSIGN_NODE, // assigment
@@ -76,4 +79,6 @@ typedef struct ASTNode
 
 }ASTNode;
 
-ASTNode *newASTNode(Node_Type *type, ASTNode *left, ASTNode *right);
+ASTNode *newASTNode(Node_Type type, ASTNode *left, ASTNode *right);
+void astPrintNode(ASTNode *node);
+void astTraversal(ASTNode *node);

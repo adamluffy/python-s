@@ -1,4 +1,4 @@
-#include "ast.h"
+
 
 // Node for arithmetic operation
 typedef struct ASTNodeArithm{
@@ -54,3 +54,8 @@ typedef struct ASTNodeEql{
     struct ASTNode *right;  //right child
 
 }ASTNodeEql;
+
+ASTNode *newASTArithmNode(enum Arithm_op op, ASTNode *left, ASTNode *right);
+ASTNode *newASTBoolNode(enum Bool_op op, ASTNode *left, ASTNode *right);
+ASTNode *newASTRelNode(enum Relation_op op, ASTNode *left, ASTNode *right);
+ASTNode *newASTEqlNode(enum Equal_op op, ASTNode *left, ASTNode *right);

@@ -1,5 +1,4 @@
-#include "ast.h"
-#include "symtab.h"
+
 
 // Node for assignment
 typedef struct ASTNodeAssign{
@@ -39,3 +38,7 @@ typedef struct ASTNodeIncr{
     int pf_type; // 0: postfix, 1: prefix
 
 }ASTNodeIncr;
+
+ASTNode *newASTAssignNode(listNode *entry, ASTNode *assign_val);
+ASTNode *newASTSimpleNode(int statement_type);
+ASTNode *newASTIncrNode(listNode *entry, int incr_type, int pf_type);
