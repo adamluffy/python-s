@@ -1,6 +1,7 @@
 %{
 	#include "semantic.c"
 	#include "symtab.c"
+	#include "ast.c"
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <string.h>
@@ -18,6 +19,7 @@
 	double dval;
 	char* sval;
 	listNode *symtab_item;
+	ASTNode *node;
 }
 
 /* token definition */
@@ -139,21 +141,22 @@ array: LBRACK expression RBRACK;
 
 /* expression */
 expression: simple_expression 
-	| conditional_expression
 	| control_expression
 	| function_call
 	| increment
 ;
 
-conditional_expression: relation_expression | boolean_expression;
+simple_expression: term 
+	| simple_expression ADDOP term 
+	| boolean_expression;
 
-relation_expression: simple_expression  RELOP simple_expression;
+boolean_expression: logical_expression | relation_expression;
 
-boolean_expression: simple_expression OROP simple_expression
-	| simple_expression ANDOP simple_expression
-	| simple_expression EQUOP simple_expression;
+logical_expression: simple_expression ANDOP term 
+	| simple_expression OROP term ;
 
-simple_expression: term | simple_expression ADDOP term;
+relation_expression: simple_expression RELOP term 
+	| simple_expression EQUOP term;
 
 term: factor | term MULOP factor | term DIVOP factor;
 
