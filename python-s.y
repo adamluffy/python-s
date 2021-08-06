@@ -73,7 +73,7 @@
 %left RANGE
 %left ADDOP
 %left MULOP DIVOP
-%right NOTOP MINUS INCR
+%right NOTOP INCR MINUS 
 %left LPAREN RPAREN LBRACK RBRACK
 
 
@@ -93,7 +93,7 @@
 %type <node> increment postfix_inc prefix_inc
 %type <node> control_structure_body
 %type <node> control_statement if_statement elif_part optional_elif else_part optional_else
-%type <val> sign
+%type <node> loop_statement for_statement for_condition while_statement
 
 %start program
 
@@ -101,7 +101,7 @@
 
 
 
-program: statements;
+program: statements { astTraversal($1); };
 
 declaration: { declare = 1; } type names { declare = 0; } SEMI
 	{
@@ -122,7 +122,7 @@ declaration: { declare = 1; } type names { declare = 0; } SEMI
 				set_type(temp->names[i]->st_name, ARRAY_TYPE, temp->data_type);
 			}
 		}
-		astTraversal($$); /* just for testing */
+		
 	}
 ;
 
@@ -216,7 +216,6 @@ statements_optional: statements | /* empty */;
 statement: assignment
 			{
 				$$ = $1;
-				astTraversal($$);
 			}
 		| declaration 
 			{
@@ -232,7 +231,7 @@ statement: assignment
 			}
 		| loop_statement 
 			{
-				$$ = NULL;
+				$$ = $1;
 			}
 		| function
 			{
@@ -272,7 +271,6 @@ postfix_inc: ID INCR
 		}else{
 			$$ = newASTIncrNode($1, 1, 0);
 		}
-		astTraversal($$);
 	}
 ;
 
@@ -283,19 +281,18 @@ prefix_inc: INCR ID %prec INCR
 		}else{
 			$$ = newASTIncrNode($2, 1, 1);
 		}
-		astTraversal($$);
 	}
 ;
 
 simple_statement: CONTINUE 
 		{
 			$$ = newASTSimpleNode(0);
-			astTraversal($$);
+			
 		}
 	| BREAK
 		{
 			$$ = newASTSimpleNode(1);
-			astTraversal($$);
+			
 		}
 ;
 
@@ -370,7 +367,6 @@ when_condition: expression
 control_structure_body: LBRACE statements RBRACE
 	{
 		$$ = $2;
-		astTraversal($2);
 	}
 ;
 
@@ -378,14 +374,40 @@ control_structure_body: LBRACE statements RBRACE
 
 /* loop */
 
-loop_statement: for_statement | while_statement;
+loop_statement: for_statement { $$ = $1; }
+	| while_statement	{ $$ = $1; }
+;
 
-for_statement: FOR LPAREN for_condition RPAREN control_structure_body;
+for_statement: FOR LPAREN for_condition RPAREN control_structure_body
+	{
+		$$ = newASTForNode($3,$5);
+		set_loop_counter($3);
+	}
+;
 
 for_condition:  assignment SEMI expression SEMI ID INCR
-	| in_expression;
+		{
+			/* create increment node*/
+    		ASTNode *incr_node;
+    		if($6.ival == INC){ /* increment */
+    		    incr_node = newASTIncrNode($5, 0, 0);
+    		}
+    		else{
+    		    incr_node = newASTIncrNode($5, 1, 0);
+    		}
+			$$ = newASTForConditionNode(0, $1, $3, incr_node);
+    		
+		}
+	| in_expression
+	{
+		$$ = newASTForConditionNode(1, NULL, $1, NULL);
+	};
 
-while_statement: WHILE expression control_structure_body;
+while_statement: WHILE expression control_structure_body
+	{
+		$$ = newASTWhileNode($2,$3);
+	}
+;
 
 variable: ID	{ $$ = newASTVariableNode($1); } 
 	| ID array
@@ -396,10 +418,20 @@ variable: ID	{ $$ = newASTVariableNode($1); }
 		}
 ;
 
-array: LBRACK ICONST RBRACK
+array: LBRACK expression RBRACK
 	{
 		// temporarly set to int const for testing
-		$$ = $2.ival;
+
+		if(declare == 1 && $2->type != CONST_NODE){
+			fprintf(stderr, "Array declaration at %d contains expression!\n", lineno);
+			exit(1);
+		}
+		else if($2->type == CONST_NODE && declare == 0){
+			ASTNodeConst *temp = (ASTNodeConst*)$2;
+			if(temp->const_type == INT_TYPE) {
+				$$ = temp->val.ival;
+			}
+		}
 	}
 ;
 
@@ -431,24 +463,24 @@ boolean_expression: logical_expression
 logical_expression: simple_expression ANDOP term 
 		{
 			$$ = newASTBoolNode(AND, $1, $3);
-			astTraversal($$);
+			
 		}
 	| simple_expression OROP term 
 		{
 			$$ = newASTBoolNode(OR, $1, $3);
-			astTraversal($$);
+			
 		}
 ;
 
 relation_expression: simple_expression RELOP term 
 		{
 			$$ = newASTRelNode($2.ival, $1, $3);
-			astTraversal($$);
+			
 		}
 	| simple_expression EQUOP term
 		{
 			$$ = newASTEqlNode($2.ival, $1, $3);
-			astTraversal($$);
+			
 		}
 ;
 
@@ -459,12 +491,12 @@ term: factor
 	| term MULOP factor
 		{
 			$$ = newASTArithmNode(MUL, $1, $3);
-			astTraversal($$);
+			
 		} 
 	| term DIVOP factor
 		{
 			$$ = newASTArithmNode(DIV, $1, $3);
-			astTraversal($$);
+			
 		}
 	;
 
@@ -474,11 +506,15 @@ factor: variable { $$ = $1; }
 	| NOTOP factor 
 		{
 			$$ = newASTBoolNode(NOT, $2, NULL);
-			astTraversal($$);
+			
 		}
-	| sign numeric_constant 
+	| ADDOP numeric_constant %prec MINUS
 		{
-			if($1.ival == 1){
+			if($1.ival == ADD){
+				fprintf(stderr, "Error having plus as a sign!\n");
+				exit(1);
+			}else{
+
 				ASTNodeConst *temp = (ASTNodeConst*)$2;
 
 				switch(temp->const_type){
@@ -491,25 +527,13 @@ factor: variable { $$ = $1; }
 				}
 
 				$$ = (ASTNode*)temp;
-			}else{
-				$$ = $2;
 			}
-			astTraversal($$);
+			
 
 		}
 		
 ;
 
-sign: ADDOP
-	{
-		if($1.ival == ADD){
-			fprintf(stderr, "Error having plus as a sign!\n");
-			exit(1);
-		}else{
-			$$.ival = 1; // sign
-		}
-	}
-;
 
 constant: 
 	numeric_constant { $$ = $1; }
@@ -529,13 +553,14 @@ parenthesis_expression: LPAREN expression RPAREN { $$ = $2; };
 range_expression: numeric_constant RANGE numeric_constant
 	{
 		$$ = newASTRangeNode(TO,$1,$3);
-		astTraversal($$);
+		
 	}
 ;
 
 in_expression: ID IN range_expression
-	{ 
-		$$ = NULL; // figure out later
+	{ 	
+		ASTNode *temp = newASTVariableNode($1);
+		$$ = newASTInNode(INOP, temp, $3); // figure out later
 	}
 ;
 
@@ -548,7 +573,7 @@ control_expression: if_expression
 if_expression: IF parenthesis_expression expression else_expression
 	{
 		$$ = newASTIfNode($2, $3, NULL, 0, $4);
-		astTraversal($$);
+		
 	}
 ;
 
@@ -567,7 +592,7 @@ when_expression: WHEN when_subject LBRACE when_entry_expr RBRACE
 			$$ = newASTWhenNode(NULL, $4);
 		}
 
-		astTraversal($$);
+		
 	}
 ;
 
@@ -576,14 +601,14 @@ when_entry_expr: when_condition ARROW expression COMMA when_entry_expr
 			$$ = newASTWhenEntryNode(expressions, ec, $3);
 			expressions = NULL;
 			ec = 0;
-			astTraversal($$);
+			
 		}
 	| when_condition ARROW expression
 		{
 			$$ = newASTWhenEntryNode(expressions, ec, $3);
 			expressions = NULL;
 			ec = 0;
-			astTraversal($$);
+			
 		}
 	| when_else_expr
 		{

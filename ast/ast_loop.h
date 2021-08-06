@@ -5,19 +5,38 @@ typedef struct ASTNodeFor{
 
     enum Node_Type type;
 
-    // intialization
+    // condition
+    struct ASTNode *condition;
+   
+    // body
+    struct ASTNode *for_branch;
+
+    
+
+}ASTNodeFor;
+
+
+// Node for condition
+typedef struct ASTNodeForCondition
+{
+    enum Node_Type type;
+
+    int condition_type; // 0: initialize type, 1: in range type
+
+     // intialization
     struct ASTNode *initialize;
 
-    // condtion
+    // condition
     struct ASTNode *condition;
 
     // increment
     struct ASTNode *increment;
 
-    // body
-    struct ASTNode *for_branch;
+    // loop counter variable
+    listNode *counter;
 
-}ASTNodeFor;
+}ASTNodeForCondition;
+
 
 
 // Node for While statement
@@ -33,6 +52,9 @@ typedef struct ASTNodeWhile {
 
 }ASTNodeWhile;
 
-ASTNode *newASTForNode(ASTNode *initialize, ASTNode *condition, 
-                    ASTNode *increment, ASTNode *for_branch);
+ASTNode *newASTForNode(ASTNode *condition, ASTNode *for_branch);
+ASTNode *newASTForConditionNode(int condition_type, ASTNode *initialize,
+            ASTNode *condition, ASTNode *increment);
 ASTNode *newASTWhileNode(ASTNode *condition, ASTNode *while_branch);
+
+void set_loop_counter(ASTNode *node);

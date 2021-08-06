@@ -10,8 +10,8 @@
 #include"ast_declare.h"
 #include"ast_expr.h"
 #include"ast_function.h"
-#include"ast_loop.h"
 #include"ast_simple.h"
+#include"ast_loop.h"
 
 // implementation files
 #include"ast_const.c"
@@ -21,8 +21,8 @@
 #include"ast_declare.c"
 #include"ast_expr.c"
 #include"ast_function.c"
-#include"ast_loop.c"
 #include"ast_simple.c"
+#include"ast_loop.c"
 
 ASTNode *newASTNode(Node_Type type, ASTNode *left, ASTNode *right){
 
@@ -44,6 +44,8 @@ void astPrintNode(ASTNode *node){
 	ASTNodeStatements *temp_statements;
 	ASTNodeIf *temp_if;
     ASTNodeWhen *temp_when;
+	ASTNodeFor *temp_for;
+	ASTNodeForCondition *temp_for_condition;
 	ASTNodeAssign *temp_assign;
 	ASTNodeSimple *temp_simple;
 	ASTNodeIncr *temp_incr;
@@ -98,7 +100,12 @@ void astPrintNode(ASTNode *node){
 			printf("Elsif Node\n");
 			break;
 		case FOR_NODE:
+			temp_for = (struct ASTNodeFor*)node;
 			printf("For Node\n");
+			break;
+		case FOR_CONDITION_NODE:
+			temp_for_condition = (struct ASTNodeForCondition*)node;
+			printf("For loop condition with counter %s\n",temp_for_condition->counter->st_name);
 			break;
 		case WHILE_NODE:
 			printf("While Node\n");
@@ -182,87 +189,116 @@ void astTraversal(ASTNode *node){
 	/* statements case */
 	else if(node->type == STATEMENTS){
 		ASTNodeStatements *temp_statements = (struct ASTNodeStatements *) node;
+		astPrintNode(node);
 		for(i = 0; i < temp_statements->statement_count; i++){
 			astTraversal(temp_statements->statements[i]);
 		}
-		astPrintNode(node);
 	}
 	/* the if case */
 	else if(node->type == IF_NODE){
 		ASTNodeIf *temp_if = (struct ASTNodeIf *) node;
-		astTraversal(temp_if->condition);
-		astTraversal(temp_if->if_branch);
-		for(i = 0; i < temp_if->elif_count; i++){
-			astTraversal(temp_if->elif_branch[i]);
-		}
-		astTraversal(temp_if->else_branch);
 		astPrintNode(node);
+		printf("Condition:\n");
+		astTraversal(temp_if->condition);
+		printf("If branch:\n");
+		astTraversal(temp_if->if_branch);
+		if(temp_if->elif_count>0){
+			printf("Elif branches:\n");
+			for(i = 0; i < temp_if->elif_count; i++){
+				printf("Elif branch %d :\n", i);
+				astTraversal(temp_if->elif_branch[i]);
+			}
+		}
+		
+		if(temp_if->else_branch != NULL){
+			printf("Else branch:\n");
+			astTraversal(temp_if->else_branch);
+		}
+		
 	}
 	/* the else if case */ 
 	else if(node->type == ELSIF_NODE){
 		ASTNodeElif *temp_elif = (struct ASTNodeElif *) node;
+		astPrintNode(node);
 		astTraversal(temp_elif->condition);
 		astTraversal(temp_elif->elif_branch);
-		astPrintNode(node);
 	}
     /* when case */
     else if(node->type == WHEN_NODE){
         ASTNodeWhen *temp_when = (struct ASTNodeWhen*)node;
+        astPrintNode(node);
         astTraversal(temp_when->condition_expr);
         astTraversal(temp_when->when_branch);
-        astPrintNode(node);
     }
     /* when body */
     else if(node->type == WHEN_BODY_NODE){
         ASTNodeWhenBody *temp_when_body = (struct ASTNodeWhenBody*)node;
+        astPrintNode(node);
         for(i=0;i<temp_when_body->entries_count;i++){
             astTraversal(temp_when_body->when_entries[i]);
         }
         astTraversal(temp_when_body->else_branch);
-        astPrintNode(node);
     }
     /* when entry */
     else if(node->type == WHEN_ENTRY_NODE){
         ASTNodeWhenEntry *temp_when_entry = (struct ASTNodeWhenEntry*)node;
+        astPrintNode(node);
         for(i=0;i<temp_when_entry->expr_count;i++){
             astTraversal(temp_when_entry->expressions[i]);
         }
         astTraversal(temp_when_entry->entry_branch);
-        astPrintNode(node);
     }
+	/* for loop condition */
+	else if(node->type == FOR_CONDITION_NODE){
+		ASTNodeForCondition *temp_for_condition = (struct ASTNodeForCondition*)node;
+		astPrintNode(node);
+		if(temp_for_condition->initialize!=NULL){
+			astTraversal(temp_for_condition->initialize);
+		}
+		astTraversal(temp_for_condition->condition);
+		if(temp_for_condition->increment!=NULL){
+			astTraversal(temp_for_condition->increment);
+		}
+	}
 	/* for case */
 	else if(node->type == FOR_NODE){
 		ASTNodeFor *temp_for = (struct ASTNodeFor *) node;
-		astTraversal(temp_for->condition);
-		astTraversal(temp_for->for_branch);
 		astPrintNode(node);
+		printf("Condition:\n");
+		astTraversal(temp_for->condition);
+		printf("For branch:\n");
+		astTraversal(temp_for->for_branch);
+	
 	}
 	/* while case */
 	else if(node->type == WHILE_NODE){
 		ASTNodeWhile *temp_while = (struct ASTNodeWhile *) node;
+		astPrintNode(node);
 		astTraversal(temp_while->condition);
 		astTraversal(temp_while->while_branch);
-		astPrintNode(node);
 	}
 	/* assign case */
 	else if(node->type == ASSIGN_NODE){
 		ASTNodeAssign *temp_assign = (struct ASTNodeAssign *) node;
-		astTraversal(temp_assign->assign_val);
 		astPrintNode(node);
+		printf("Assigning:\n");
+		astTraversal(temp_assign->assign_val);
 	}
 	/* function call case */
 	else if(node->type == FUNC_CALL){
 		ASTNodeFuncCall *temp_func_call = (struct ASTNodeFuncCall *) node;
+		astPrintNode(node);
+		printf("Call parameters:\n");
 		for(i = 0; i < temp_func_call->num_of_pars; i++){
 			astTraversal(temp_func_call->params[i]);
 		}
-		astPrintNode(node);
 	}
 	/* return case */
 	else if(node->type == RETURN_NODE){
 		ASTNodeReturn *temp_return = (struct ASTNodeReturn *) node;
-		astTraversal(temp_return->ret_val);
 		astPrintNode(node);
+		printf("Returning:\n");
+		astTraversal(temp_return->ret_val);
 	}
 	/* others */
 	else{

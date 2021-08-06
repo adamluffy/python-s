@@ -1,7 +1,6 @@
 # program: declaration 
 # main function 
 # declaration 
-int i;
 char c = 'c';
 double val = 2.5, res[6];
 double p;
@@ -14,14 +13,14 @@ for(i in 1..10){
             i = 2*i
             val = func1()
             p = add(val,i)
-            print(res[0])
+            print(res[i])
             print("\n")
             continue 
         },
         else->{
             p = add(val,i)
-            val = res[0]
-            print(res[0])
+            val = res[i]
+            print(res[i])
             print("\n")
             p++
         }

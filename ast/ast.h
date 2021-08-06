@@ -11,6 +11,7 @@ typedef enum Node_Type{
     WHEN_BODY_NODE,
     WHEN_ENTRY_NODE,
 	FOR_NODE,    // for statement
+    FOR_CONDITION_NODE,
 	WHILE_NODE,  // while statement
 	ASSIGN_NODE, // assigment
 	SIMPLE_NODE, // continue, break and "main" return statements
