@@ -6,6 +6,7 @@
 #define ARRAY_TYPE 4
 #define STR_TYPE 5
 #define FUNCTION_TYPE 6
+#define VOID_TYPE 7
 
 // operation type
 #define NONE 0
@@ -15,7 +16,8 @@
 #define NOT_OP 4    // NOTOP (not)
 #define REL_OP 5    // RELOP (>, <, >=, <=)
 #define EQU_OP 6    // EQUOP (==, !=)
-#define RANGE_OP 7  // RANGEOP (..)
+#define IN_OP 7     // IS IN (in)
+#define RANGE_OP 8  // RANGEOP (..)
 
 int get_result_type(int type1, int type2, int opType);
 void type_error(int type1, int type2, int opType);

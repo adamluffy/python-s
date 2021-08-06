@@ -3,9 +3,9 @@
 #include <string.h>
 
 // header files
-#include"ast.h"
 #include"ast_const.h"
 #include"ast_ctrl_stmt.h"
+#include"ast_var.h"
 #include"ast_declare.h"
 #include"ast_expr.h"
 #include"ast_function.h"
@@ -15,6 +15,7 @@
 // implementation files
 #include"ast_const.c"
 #include"ast_ctrl_stmt.c"
+#include"ast_var.c"
 #include"ast_declare.c"
 #include"ast_expr.c"
 #include"ast_function.c"
@@ -48,6 +49,9 @@ void astPrintNode(ASTNode *node){
 	ASTNodeBool *temp_bool;
 	ASTNodeRel *temp_rel;
 	ASTNodeEql *temp_equ;
+	ASTNodeIn *temp_in;
+	ASTNodeRange *temp_range;
+	ASTNodeVariable *temp_variable;
 	ASTNodeFuncDecl *temp_func_decl;
 	ASTNodeReturn *temp_return;
 	
@@ -113,6 +117,18 @@ void astPrintNode(ASTNode *node){
 		case EQU_NODE:
 			temp_equ = (struct ASTNodeEql *) node;
 			printf("Equality Node of operator %d\n", temp_equ->op);
+			break;
+		case IN_NODE:
+			temp_in = (struct ASTNodeIn*)node;
+			printf("In node of operator %d\n", temp_in->op);
+			break;
+		case RANGE_NODE:
+			temp_range = (struct ASTNodeRange*)node;
+			printf("Range node of operator %d\n", temp_range->op);
+			break;
+		case VARIABLE_NODE:
+			temp_variable = (struct ASTNodeVariable*)node;
+			printf("Variable with type %d\n", temp_variable->symtab_item->st_type);
 			break;
 		case FUNC_DECL:
 			temp_func_decl = (struct ASTNodeFuncDecl *) node;

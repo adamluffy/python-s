@@ -14,14 +14,14 @@ for(i in 1..10){
             i = 2*i
             val = func1()
             p = add(val,i)
-            print(res[i])
+            print(res[0])
             print("\n")
             continue 
         },
         else->{
             p = add(val,i)
-            val = res[i]
-            print(res[i])
+            val = res[0]
+            print(res[0])
             print("\n")
             p++
         }

@@ -49,3 +49,29 @@ ASTNode *newASTEqlNode(enum Equal_op op, ASTNode *left, ASTNode *right){
 
     return (struct ASTNode*)val;
 }
+
+
+ASTNode *newASTInNode(enum In_op op, ASTNode *left, ASTNode *right){
+
+    ASTNodeIn *val = malloc(sizeof(ASTNodeIn));
+
+    val->type = IN_NODE;
+    val->op = op;
+    val->left = left;
+    val->right = right;
+
+    return (struct ASTNode*)val;
+}
+
+
+ASTNode *newASTRangeNode(enum Range_op op, ASTNode *left, ASTNode *right){
+
+    ASTNodeRange *val = malloc(sizeof(ASTNodeRange));
+
+    val->type = RANGE_NODE;
+    val->op = op;
+    val->left = left;
+    val->right = right;
+
+    return (struct ASTNode*)val;
+}

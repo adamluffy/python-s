@@ -1,3 +1,5 @@
+#include"ast/ast.h"
+
 /* maximum size of hash table */
 #define SIZE 233
 
@@ -13,7 +15,7 @@ typedef struct Parameter{
 	int par_type;
 	char param_name[MAXTOKENLEN];
 	// to store value
-	int ival; double fval; char *st_sval;
+	Value val;
 	int passing; // value or reference
 }Parameter;
 
@@ -31,12 +33,12 @@ typedef struct listNode{
     int scope;
     RefList *lines;
 	// to store value and sometimes more information
-	int st_ival; double st_fval; char *st_sval;
+	Value val;
 	// type
     int st_type;
 	int inf_type; // for arrays (info type) and functions (return type)
 	// array stuff
-	int *i_vals; double *f_vals; char **s_vals;
+	Value *vals;
 	int array_size;
 	// function parameters
 	Parameter *parameters;

@@ -52,21 +52,27 @@ STRING		\"{print}*\"
 "for"			{ return FOR; }
 "continue"		{ return CONTINUE; }
 "break"			{ return BREAK; }
-"in"			{ return IN; }
+"in"			{ yylval.val.ival = IN_OP; return IN; }
 "void"			{ return VOID; }
 "def"			{ return DEFINE; }
 "return"		{ return RETURN; }
 
 
-"+"|"-"					{ return ADDOP; }
-"++"|"--"				{ return INCR;}
-"*"						{ return MULOP; }
-"/"						{ return DIVOP; }
-"or"					{ return OROP; }
-"and"					{ return ANDOP; }
-"not"					{ return NOTOP; }
-"=="|"!="				{ return EQUOP; }
-">"|"<"|">="|"<="		{ return RELOP; }
+"+"				{ yylval.val.ival = ADD; return ADDOP; }
+"-"				{ yylval.val.ival = SUB; return ADDOP; }
+"++"			{ yylval.val.ival = INC; return INCR; }
+"--"			{ yylval.val.ival = DEC; return INCR; }
+"*"				{ return MULOP; }
+"/"				{ return DIVOP; }
+"or"			{ return OROP; }
+"and"			{ return ANDOP; }
+"not"			{ return NOTOP; }
+"=="			{ yylval.val.ival = EQUAL; return EQUOP; }
+"!="			{ yylval.val.ival = NOT_EQUAL; return EQUOP; }
+">"				{ yylval.val.ival = GREATER; return RELOP; }
+"<"				{ yylval.val.ival = LESS; return RELOP; }
+">="			{ yylval.val.ival = GREATER_EQUAL; return RELOP; }
+"<="			{ yylval.val.ival = LESS_EQUAL; return RELOP; }
 
 
 "("				{ return LPAREN; }
@@ -91,12 +97,13 @@ STRING		\"{print}*\"
 					yylval.symtab_item = lookup(yytext);
 					return ID;
 				}
-{ICONST} 		{ yylval.ival = atoi(yytext); return ICONST; }
-{FCONST} 		{ yylval.dval = atof(yytext); return FCONST; }
-{CCONST} 		{ yylval.cval = yytext[0]; return CCONST; }
+{ICONST} 		{ yylval.val.ival = atoi(yytext); return ICONST; }
+{FCONST} 		{ yylval.val.fval = atof(yytext); return FCONST; }
+{CCONST} 		{ yylval.val.cval = yytext[1]; 
+					return CCONST; }
 {STRING} 		{ 
-					yylval.sval = malloc(yyleng*sizeof(char));
-					strcpy(yylval.sval, yytext);
+					yylval.val.sval = malloc(yyleng*sizeof(char));
+					strcpy(yylval.val.sval, yytext);
 					return STRING; 
 				}
 

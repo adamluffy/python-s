@@ -20,7 +20,10 @@ typedef enum Node_Type{
     // RANGE_NODE,   // range expression
 	BOOL_NODE,   // boolean expression
 	REL_NODE,    // relational expression
-	EQU_NODE,    // equality expression
+	EQU_NODE,    // equality 
+    IN_NODE,    // is in expression
+    VARIABLE_NODE,  // variable 
+    RANGE_NODE, // range expression
 	// functions
 	FUNC_DECL,   // function declaration
 	RETURN_NODE // return statement of functions
@@ -48,14 +51,23 @@ typedef enum Relation_op{
     GREATER,
     LESS,
     GREATER_EQUAL,
-    LESS_EQUAL,
-    IN
+    LESS_EQUAL
 }Relation_op;
 
 typedef enum Equal_op{
     EQUAL,
     NOT_EQUAL
 }Equal_op;
+
+
+typedef enum In_op{
+    INOP
+}In_op;
+
+
+typedef enum Range_op{
+    TO
+}Range_op;
 
 
 /**
@@ -66,7 +78,7 @@ typedef union  Value
     int ival;
     double fval;
     char cval;
-    char *sval;
+    char* sval;
 }Value;
 
 

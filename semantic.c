@@ -226,7 +226,7 @@ int get_result_type(int type1, int type2, int opType){
 			}else if(type2 == CHAR_TYPE){
 
 				if(type2 == CHAR_TYPE) { 
-					return CHAR_TYPE;
+					return INT_TYPE;
 				}
 				else {
 					type_error(type1, type2, opType);

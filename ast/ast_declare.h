@@ -12,4 +12,4 @@ typedef struct ASTNodeDecl{
     
 }ASTNodeDecl;
 
-ASTNode *newASTNodeDecl(int data_type, listNode** names);
+ASTNode *newASTDeclNode(int data_type, listNode** names, int names_count);
