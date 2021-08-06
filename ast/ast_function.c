@@ -26,6 +26,30 @@ ASTNode *newASTFuncDeclNode(int ret_type, listNode *entry){
 }
 
 
+ASTNode *newASTCallParamsNode(ASTNode **params, int num_of_pars, ASTNode *param){
+
+    ASTNodeCallParams *val = malloc(sizeof(ASTNodeCallParams));
+
+    val->type = CALL_PARAMS;
+
+    if(params = NULL){
+        params = (ASTNode**)malloc(sizeof(ASTNode*));
+        params[0] = param;
+        num_of_pars = 1;
+    }else{
+        params = (ASTNode**)realloc(params,
+                (num_of_pars+1)*sizeof(ASTNode*));
+        params[num_of_pars] = param;
+        num_of_pars++;
+    }
+
+    val->params = params;
+    val->num_of_pars = num_of_pars;
+
+    return (struct ASTNode*)val;
+}
+
+
 ASTNode *newASTDeclParamsNode(Parameter *parameters, int num_of_pars, Parameter param){
 
     ASTNodeDeclParams *val = malloc(sizeof(ASTNodeDeclParams));

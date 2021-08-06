@@ -14,6 +14,18 @@ typedef struct ASTNodeFuncCall{
 }ASTNodeFuncCall;
 
 
+// node for function call parameter
+typedef struct ASTNodeCallParams{
+
+    enum Node_Type type;
+
+    // call parameters
+    ASTNode **params;
+    int num_of_pars;
+
+}ASTNodeCallParams;
+
+
 // node for function declaration
 typedef struct ASTNodeFuncDecl{
 
@@ -71,6 +83,7 @@ typedef struct ASTNodeReturn{
 
 ASTNode *newASTFuncCallNode(listNode *entry, ASTNode **params, int num_of_pars);
 ASTNode *newASTFuncDeclNode(int ret_type, listNode *entry);
+ASTNode *newASTCallParamsNode(ASTNode **params, int num_of_pars, ASTNode *param);
 ASTNode *newASTDeclParamsNode(Parameter *parameters, int num_of_pars, Parameter param);
 ASTNode *newASTRetTypeNode(int ret_type);
 ASTNode *newASTReturnNode(int ret_type, ASTNode *ret_val);

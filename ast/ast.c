@@ -73,7 +73,7 @@ void astPrintNode(ASTNode *node){
 			break;
 		case CONST_NODE:
 			temp_const = (struct ASTNodeConst *) node;
-			printf("Constant Node of const-type %d\n", temp_const->const_type);
+			printf("Constant Node of const-type %d with value ", temp_const->const_type);
 			switch(temp_const->const_type){
 				case INT_TYPE:
 					printf("%d\n", temp_const->val.ival);
@@ -83,6 +83,9 @@ void astPrintNode(ASTNode *node){
 					break;
 				case CHAR_TYPE:
 					printf("%c\n",  temp_const->val.cval);
+					break;
+				case STR_TYPE:
+					printf("%s\n", temp_const->val.sval);
 					break;
 			}
 			break;

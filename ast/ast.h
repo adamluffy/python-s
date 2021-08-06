@@ -17,6 +17,7 @@ typedef enum Node_Type{
 	SIMPLE_NODE, // continue, break and "main" return statements
 	INCR_NODE,   // increment statement (non-expression one)
 	FUNC_CALL,   // function call
+    CALL_PARAMS,  // function call parameters
 	// expressions
 	ARITHM_NODE, // arithmetic expression
     // RANGE_NODE,   // range expression

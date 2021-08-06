@@ -102,7 +102,7 @@
 %type <node> loop_statement for_statement for_condition while_statement
 %type <node> function optional_parameters parameters param_init
 %type <par> parameter
-%type <node> return_type
+%type <node> return_type function_call call_params call_param
 
 %start program
 
@@ -253,7 +253,7 @@ statement: assignment
 			}
 		| function_call 
 			{
-				$$ = NULL;
+				$$ = $1;
 			}
 		| increment
 			{
@@ -453,7 +453,7 @@ array: LBRACK expression RBRACK
 /* expression */
 expression: simple_expression { $$ = $1; }
 	| control_expression	{ $$ = $1; }
-	| function_call { $$ = NULL; }
+	| function_call { $$ = $1; }
 	| increment { $$ = $1; }
 ;
 
@@ -644,11 +644,46 @@ when_else_expr: ELSE ARROW expression
 
 
 /* functions */
-function_call: ID LPAREN call_params RPAREN;
+function_call: ID LPAREN call_params RPAREN
+	{
+		ASTNodeCallParams *temp = (ASTNodeCallParams*)$3;
+		$$ = newASTFuncCallNode($1, temp->params, temp->num_of_pars);
+	}
+;
 
-call_params: call_param | /* empty */;
+call_params: call_param 
+		{
+				
+			if($1->type == CONST_NODE){
+				ASTNodeConst *temp = (ASTNodeConst*)$1;
+				if(temp->const_type == STR_TYPE) {
+					$$ = newASTCallParamsNode(NULL,0,$1);
+				}
+			}else{
+				$$ = $1;
+			}
+			
+		}
+	| /* empty */
+		{
+			ASTNodeCallParams *temp = malloc(sizeof(ASTNodeCallParams));
+			temp->type = CALL_PARAMS;
+			temp->params = NULL;
+        	temp->num_of_pars = 0;
+        	$$ = (ASTNode*)temp;
+		}
+;
 
-call_param: call_param COMMA expression | expression;
+call_param: call_param COMMA expression 
+		{
+			ASTNodeCallParams *temp = (ASTNodeCallParams*)$1;
+			$$ = newASTCallParamsNode(temp->params,temp->num_of_pars,$3);
+		}
+	| expression
+		{
+			$$ = newASTCallParamsNode(NULL,0,$1);
+		}
+;
 
 function: { incr_scope(); }function_head function_body 
 	{
