@@ -1,6 +1,7 @@
 typedef enum Node_Type{
     BASIC_NODE,  // no special usage (for roots only)
 	// declarations
+    STATEMENTS,
 	DECL_NODE,   // declaration
 	CONST_NODE,  // constant
 	// statements

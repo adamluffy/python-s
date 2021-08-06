@@ -4,6 +4,7 @@
 
 // header files
 #include"ast_const.h"
+#include"ast_stmt.h"
 #include"ast_ctrl_stmt.h"
 #include"ast_var.h"
 #include"ast_declare.h"
@@ -14,6 +15,7 @@
 
 // implementation files
 #include"ast_const.c"
+#include"ast_stmt.c"
 #include"ast_ctrl_stmt.c"
 #include"ast_var.c"
 #include"ast_declare.c"
@@ -39,6 +41,7 @@ void astPrintNode(ASTNode *node){
     /* temp nodes */
 	ASTNodeDecl *temp_decl;
 	ASTNodeConst *temp_const;
+	ASTNodeStatements *temp_statements;
 	ASTNodeIf *temp_if;
     ASTNodeWhen *temp_when;
 	ASTNodeAssign *temp_assign;
@@ -67,6 +70,21 @@ void astPrintNode(ASTNode *node){
 		case CONST_NODE:
 			temp_const = (struct ASTNodeConst *) node;
 			printf("Constant Node of const-type %d\n", temp_const->const_type);
+			switch(temp_const->const_type){
+				case INT_TYPE:
+					printf("%d\n", temp_const->val.ival);
+					break;
+				case REAL_TYPE:
+					printf("%.2f\n", temp_const->val.fval);
+					break;
+				case CHAR_TYPE:
+					printf("%c\n",  temp_const->val.cval);
+					break;
+			}
+			break;
+		case STATEMENTS:
+			temp_statements = (struct ASTNodeStatements *) node;
+			printf("Statements Node with %d statements\n", temp_statements->statement_count);
 			break;
 		case IF_NODE:
 			temp_if = (struct ASTNodeIf *) node;
@@ -160,6 +178,14 @@ void astTraversal(ASTNode *node){
 		astTraversal(node->left);
 		astTraversal(node->right);
 		astPrintNode(node); // postfix
+	}
+	/* statements case */
+	else if(node->type == STATEMENTS){
+		ASTNodeStatements *temp_statements = (struct ASTNodeStatements *) node;
+		for(i = 0; i < temp_statements->statement_count; i++){
+			astTraversal(temp_statements->statements[i]);
+		}
+		astPrintNode(node);
 	}
 	/* the if case */
 	else if(node->type == IF_NODE){

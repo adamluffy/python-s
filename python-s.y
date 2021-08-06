@@ -20,6 +20,11 @@
 	void add_to_exprs(ASTNode *entry);
 	ASTNode **expressions;
 	int ec = 0;
+
+	// for else ifs
+	void add_elseif(ASTNode *elsif);
+	ASTNode **elsifs;
+	int elseif_count = 0;
 	
 	// for the initializations of arrays
 	void add_to_vals(Value val);
@@ -73,7 +78,7 @@
 
 
 %type <node> declaration
-%type <node> statement assignment
+%type <node> statements statement assignment
 %type <node> simple_statement
 %type <data_type> type
 %type <node> variable 
@@ -86,6 +91,8 @@
 %type <node> control_expression if_expression else_expression when_expression
 %type <node> in_expression when_entry_expr when_else_expr when_subject
 %type <node> increment postfix_inc prefix_inc
+%type <node> control_structure_body
+%type <node> control_statement if_statement elif_part optional_elif else_part optional_else
 %type <val> sign
 
 %start program
@@ -193,7 +200,16 @@ type: INT		{ $$ = INT_TYPE; }
 
 
 /* statements */
-statements: statement | statements statement;
+statements: statement 
+	{
+		$$ = newASTStatementsNode(NULL,0,$1);
+	}
+| statements statement
+	{
+		ASTNodeStatements *temp = (ASTNodeStatements*)$1;
+		$$ = newASTStatementsNode(temp->statements, temp->statement_count, $2);
+	}
+;
 
 statements_optional: statements | /* empty */;
 
@@ -208,7 +224,7 @@ statement: assignment
 			}
 		| control_statement  
 			{
-				$$ = NULL;
+				$$ = $1;
 			}
 		| simple_statement
 			{
@@ -283,20 +299,45 @@ simple_statement: CONTINUE
 		}
 ;
 
-control_statement: if_statement | when_statement;
+control_statement: if_statement { $$ = $1; }
+	| when_statement { $$ = NULL; } // will do this later
+;
 
 /* if statement grammar*/
-if_statement: IF expression control_structure_body optional_elif optional_else;
+if_statement: IF expression control_structure_body optional_elif optional_else
+	{
+		$$ = newASTIfNode($2, $3, elsifs, elseif_count, $5);
+		elseif_count = 0;
+		elsifs = NULL;
+	}
+;
 
 elif_part:  elif_part ELIF expression control_structure_body 
+		{
+			ASTNode *temp = newASTElsifNode($3, $4);
+			add_elseif(temp);
+		}
 	| ELIF expression control_structure_body
+		{
+			ASTNode *temp = newASTElsifNode($2, $3);
+			add_elseif(temp);
+		}
 ; 
 
-else_part: ELSE control_structure_body;
+else_part: ELSE control_structure_body
+	{
+		$$ = $2;
+	}
+;
 
-optional_elif: elif_part | /* empty */;
+optional_elif: elif_part 
+	{ $$ = $1; }
+	| /* empty */	{ $$ = NULL; }
+;
 
-optional_else: else_part | /* empty */;
+optional_else: else_part { $$ = $1; }
+	 | /* empty */  { $$ = NULL; }
+;
 
 /* when statement grammar */
 
@@ -326,7 +367,12 @@ when_condition: expression
 		}
 ;
 
-control_structure_body: LBRACE statements RBRACE;
+control_structure_body: LBRACE statements RBRACE
+	{
+		$$ = $2;
+		astTraversal($2);
+	}
+;
 
 
 
@@ -619,6 +665,21 @@ void add_to_exprs(ASTNode *entry){
 		expressions = (ASTNode **)realloc(expressions, ec*sizeof(ASTNode*));
 		expressions[ec-1] = entry;
 	}
+}
+
+void add_elseif(ASTNode *elsif){
+  // first entry
+  if(elseif_count == 0){
+    elseif_count = 1;
+    elsifs = (ASTNode **) malloc(1 * sizeof(ASTNode*));
+    elsifs[0] = elsif;
+  }
+  // general case
+  else{
+    elseif_count++;
+    elsifs = (ASTNode **) realloc(elsifs, elseif_count * sizeof(ASTNode*));
+    elsifs[elseif_count - 1] = elsif;
+  }
 }
 
 void add_to_vals(Value val){
