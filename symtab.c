@@ -38,6 +38,7 @@ void insert(char *name, int len, int type, int lineno){
 			strncpy(l->st_name, name, len);  
 			/* add to hashtable */
 			l->st_type = type;
+			l->st_size = len;
 			l->scope = cur_scope;
 			l->lines = (RefList*) malloc(sizeof(RefList));
 			l->lines->lineno = lineno;
@@ -51,6 +52,7 @@ void insert(char *name, int len, int type, int lineno){
 			l = (listNode*) malloc(sizeof(listNode));
         	strncpy(l->st_name, name, len);
         	l->st_type = type;
+			l->st_size = len;
         	l->scope = cur_scope;
         	l->lines = (RefList*) malloc(sizeof(RefList));
         	l->lines->lineno = lineno;
@@ -92,6 +94,7 @@ void insert(char *name, int len, int type, int lineno){
 				l = (listNode*) malloc(sizeof(listNode));
 				strncpy(l->st_name, name, len);  
 				l->st_type = type;
+				l->st_size = len;
 				l->scope = cur_scope;
 				l->lines = (RefList*) malloc(sizeof(RefList));
 				l->lines->lineno = lineno;

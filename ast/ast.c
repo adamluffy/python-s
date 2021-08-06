@@ -58,6 +58,8 @@ void astPrintNode(ASTNode *node){
 	ASTNodeRange *temp_range;
 	ASTNodeVariable *temp_variable;
 	ASTNodeFuncDecl *temp_func_decl;
+	ASTNodeDeclParams *temp_decl_params;
+	ASTNodeRetType *temp_ret_type;
 	ASTNodeReturn *temp_return;
 	
 	switch(node->type){
@@ -158,6 +160,14 @@ void astPrintNode(ASTNode *node){
 		case FUNC_DECL:
 			temp_func_decl = (struct ASTNodeFuncDecl *) node;
 			printf("Function Declaration Node of %s with ret_type %d\n", temp_func_decl->entry->st_name, temp_func_decl->ret_type);
+			break;
+		case RET_TYPE:
+			temp_ret_type = (struct ASTNodeRetType *) node;
+			printf("Return type %d which is a variable", temp_ret_type->ret_type);
+			break;	
+		case DECL_PARAMS: 
+			temp_decl_params = (struct ASTNodeDeclParams*)node;
+			printf("Function declaration parameters node of %d parameters\n", temp_decl_params->num_of_pars);
 			break;
 		case RETURN_NODE:
 			temp_return = (struct ASTNodeReturn *) node;
@@ -283,6 +293,41 @@ void astTraversal(ASTNode *node){
 		astPrintNode(node);
 		printf("Assigning:\n");
 		astTraversal(temp_assign->assign_val);
+	}
+	/* function declaration case */
+	else if(node->type == FUNC_DECL){
+		ASTNodeFuncDecl *temp_func_decl = (struct ASTNodeFuncDecl *) node;
+		astPrintNode(node);
+		if(temp_func_decl->entry->num_of_pars != 0){
+			printf("Parameters:\n");
+			for(i = 0; i < temp_func_decl->entry->num_of_pars; i++){
+				printf("Parameter %s of type %d\n", 
+					temp_func_decl->entry->parameters[i].param_name,
+					temp_func_decl->entry->parameters[i].par_type
+				);
+			}
+		}
+		if(temp_func_decl->declarations != NULL){
+			printf("Function declarations:\n");
+			astTraversal(temp_func_decl->declarations);
+		}
+		if(temp_func_decl->statements != NULL){
+			printf("Function statements:\n");
+			astTraversal(temp_func_decl->statements);
+		}
+		if(temp_func_decl->return_node != NULL){
+			printf("Return node:\n");
+			astTraversal(temp_func_decl->return_node);
+		}
+	}
+	/* parameter declarations case */
+	else if(node->type == DECL_PARAMS){
+		ASTNodeDeclParams *temp_decl_params = (struct ASTNodeDeclParams *) node;
+		astPrintNode(node);
+		printf("Call parameters:\n");
+		for(i = 0; i < temp_decl_params->num_of_pars; i++){
+			printf("Parameter %s of type %d\n", temp_decl_params->parameters[i].param_name, temp_decl_params->parameters[i].par_type);
+		}		
 	}
 	/* function call case */
 	else if(node->type == FUNC_CALL){

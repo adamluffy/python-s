@@ -28,6 +28,8 @@ typedef enum Node_Type{
     RANGE_NODE, // range expression
 	// functions
 	FUNC_DECL,   // function declaration
+    RET_TYPE,    // function return type
+    DECL_PARAMS,    //function parameters
 	RETURN_NODE // return statement of functions
 }Node_Type;
 

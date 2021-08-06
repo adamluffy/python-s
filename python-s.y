@@ -30,6 +30,9 @@
 	void add_to_vals(Value val);
 	Value *vals;
 	int vc = 0;
+
+	// for functions
+	ASTNodeFuncDecl *temp_function;
 %}
 
 
@@ -48,6 +51,9 @@
 
 	// for arrays
 	int array_size;
+
+	// for parameters
+	Parameter par;
 }
 
 /* token definition */
@@ -94,6 +100,9 @@
 %type <node> control_structure_body
 %type <node> control_statement if_statement elif_part optional_elif else_part optional_else
 %type <node> loop_statement for_statement for_condition while_statement
+%type <node> function optional_parameters parameters param_init
+%type <par> parameter
+%type <node> return_type
 
 %start program
 
@@ -211,7 +220,12 @@ statements: statement
 	}
 ;
 
-statements_optional: statements | /* empty */;
+statements_optional: statements 
+		{
+			temp_function->statements = $1;
+		}
+	| /* empty */ { temp_function->statements = NULL; }
+;
 
 statement: assignment
 			{
@@ -636,25 +650,85 @@ call_params: call_param | /* empty */;
 
 call_param: call_param COMMA expression | expression;
 
-function: { incr_scope(); }function_head function_body {hide_scope();};
+function: { incr_scope(); }function_head function_body 
+	{
+		hide_scope();
+		$$ = (ASTNode*)temp_function;
+		astTraversal($$); // testing
+	}
+;
 
-function_head: { declare = 1; }DEFINE ID LPAREN optional_parameters RPAREN COLON return_type { declare = 0; };
+function_head: { declare = 1; } DEFINE ID LPAREN optional_parameters RPAREN COLON return_type 
+	{ 
+		declare = 0; 
+
+		ASTNodeRetType *temp = (ASTNodeRetType*)$8;
+		temp_function = (ASTNodeFuncDecl*)
+			newASTFuncDeclNode(temp->ret_type, $3);
+		temp_function->entry->st_type = FUNCTION_TYPE;
+		temp_function->entry->inf_type = temp->ret_type;
+
+		if($5 != NULL){
+			ASTNodeDeclParams *temp = (ASTNodeDeclParams*)$5;
+
+			temp_function->entry->parameters = temp->parameters;
+			temp_function->entry->num_of_pars = temp->num_of_pars;
+		}else{
+			temp_function->entry->parameters = NULL;
+			temp_function->entry->num_of_pars = 0;
+		}
+	}
+;
 
 function_body: LBRACE statements_optional return_optional RBRACE | SHORTHAND expression;
 
-parameters: parameters COMMA parameter |  parameter;
+parameters: parameters COMMA parameter 
+		{
+			ASTNodeDeclParams *temp = (ASTNodeDeclParams*)$1;
+			$$ = newASTDeclParamsNode(temp->parameters, temp->num_of_pars,$3);
+		}
+	|  parameter
+		{
+			$$ = newASTDeclParamsNode(NULL, 0 ,$1);
+		}
+;
 
-parameter: { declare = 1; } type param_init { declare = 0; };
+parameter: { declare = 1; } type param_init 
+	{ 
+		declare = 0; 
+		ASTNodeVariable *temp = (ASTNodeVariable*)$3;
+		$$ = def_param($2, temp->symtab_item->st_name,0);
+	}
+;
 
-param_init: variable_init | variable;
+param_init: variable_init 
+		{
+			$$ = newASTVariableNode($1);
+		}
+	| variable { $$ = $1; };
 
-optional_parameters: parameters | /* empty */;
+optional_parameters: parameters
+		{
+			$$ = $1;
+		}
+ 	| /* empty */ { $$ = NULL; }
+;
 
-return_type: type; 
+return_type: type
+	{
+		$$ = newASTRetTypeNode($1);
+	}
+; 
 
-return_statement: RETURN expression;
-
-return_optional: return_statement | /* empty */;
+return_optional: RETURN expression
+	{
+		temp_function->return_node = newASTReturnNode(temp_function->ret_type,$2);
+	} 
+	| /* empty */
+	{
+		temp_function->return_node = NULL;
+	}
+;
 
 %%
 
