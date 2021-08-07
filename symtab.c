@@ -62,7 +62,7 @@ void insert(char *name, int len, int type, int lineno){
         	printf("Inserted %s at line %d to check it again later!\n", name, lineno);
 
         	/* Adding identifier to the revisit queue! */
-        	add_to_queue(l->st_name, PARAM_CHECK);
+        	add_to_queue(l,l->st_name, PARAM_CHECK);
 
 		}
 	}
@@ -79,6 +79,8 @@ void insert(char *name, int len, int type, int lineno){
 			t->next->lineno = lineno;
 			t->next->next = NULL;
 			printf("Found %s again at line %d!\n", name, lineno);
+		
+			
 		}
 		// new entry
 		else{
@@ -294,7 +296,7 @@ int func_param_check(char *name, int num_of_pars, Parameter*parameters){ // chec
 // Revisit Queue function
 
 // add to queue
-void add_to_queue(char *name, int type){
+void add_to_queue(listNode *entry, char *name, int type){
 
 	revisitQueue *q;
 	
@@ -302,6 +304,7 @@ void add_to_queue(char *name, int type){
 	if(queue == NULL){
 		/* set up entry */
 		q = (revisitQueue*) malloc(sizeof(revisitQueue));
+		q->entry = entry;
 		q->st_name = name;
 		q->revisit_type = type;
 		q->next = NULL;
@@ -317,6 +320,7 @@ void add_to_queue(char *name, int type){
 		
 		/* add element to the end */
 		q->next = (revisitQueue*) malloc(sizeof(revisitQueue));
+		q->entry = entry;
 		q->next->st_name = name;
 		q->next->revisit_type = type;
 		q->next->next = NULL;
@@ -367,6 +371,16 @@ int revisit(char *name){
 	q->next = q->next->next;	
 	
 	return 0; // success
+}
+
+revisitQueue *search_queue(char *name){
+
+	revisitQueue *q;
+
+	q = queue;
+	while(strcmp(q->st_name,name)!=0) q = q->next;
+
+	return q;
 }
 
 // dump file

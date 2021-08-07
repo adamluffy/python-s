@@ -49,11 +49,17 @@ typedef struct listNode{
 
 typedef struct revisitQueue{
 
+	listNode *entry;
+
 	// name of identifier
     char *st_name;
 	
     // type of revisit
     int revisit_type;
+
+	// parameters
+	int *par_types;
+	int num_of_pars;
 
     // maybe additional information to simplify the process ...
 
@@ -88,6 +94,7 @@ int func_declare(char *name, int ret_type, int num_of_pars, Parameter *parameter
 int func_param_check(char *name, int num_of_pars, Parameter *parameters); // check parameters
 
 // Revisit Queue function
-void add_to_queue(char *name, int type); // add to queue
+void add_to_queue(listNode	*entry,char *name, int type); // add to queue
 int revisit(char *name); // revisit entry by also removing it from queue
 void revisit_dump(FILE *of); // dump file
+revisitQueue *search_queue(char *name);

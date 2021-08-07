@@ -266,6 +266,12 @@ assignment: variable ASSIGN expression
 	{
 		ASTNodeVariable *temp = (ASTNodeVariable*)$1;
 		$$ = newASTAssignNode(temp->symtab_item, $3);
+
+		get_result_type(
+			get_type(temp->symtab_item->st_name),
+			expressionDataType($3),
+			NONE
+		);
 	}
 ;
 
@@ -610,6 +616,10 @@ range_expression: numeric_constant RANGE numeric_constant
 		$$ = newASTRangeNode(TO,$1,$3);
 		
 	}
+	| string_constant RANGE string_constant
+	{
+		$$ = newASTRangeNode(TO,$1,$3);
+	}
 ;
 
 in_expression: ID IN range_expression
@@ -693,6 +703,18 @@ function_call: ID LPAREN call_params RPAREN
 	{
 		ASTNodeCallParams *temp = (ASTNodeCallParams*)$3;
 		$$ = newASTFuncCallNode($1, temp->params, temp->num_of_pars);
+	
+		// add information to revisit the queue entry (if exists)
+		revisitQueue *q = search_queue($1->st_name);
+		if(q!=NULL){
+			q->num_of_pars = temp->num_of_pars;
+			q->par_types = (int*)malloc(temp->num_of_pars*sizeof(int));
+
+			for(int i=0; i<temp->num_of_pars;i++){
+				q->par_types[i] = expressionDataType(temp->params[i]);
+			}
+		}
+	
 	}
 ;
 
