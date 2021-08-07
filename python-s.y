@@ -704,17 +704,6 @@ function_call: ID LPAREN call_params RPAREN
 		ASTNodeCallParams *temp = (ASTNodeCallParams*)$3;
 		$$ = newASTFuncCallNode($1, temp->params, temp->num_of_pars);
 	
-		// add information to revisit the queue entry (if exists)
-		revisitQueue *q = search_queue($1->st_name);
-		if(q!=NULL){
-			q->num_of_pars = temp->num_of_pars;
-			q->par_types = (int*)malloc(temp->num_of_pars*sizeof(int));
-
-			for(int i=0; i<temp->num_of_pars;i++){
-				q->par_types[i] = expressionDataType(temp->params[i]);
-			}
-		}
-	
 	}
 ;
 
@@ -754,15 +743,15 @@ call_param: call_param COMMA expression
 
 function: { incr_scope(); }function_head function_body 
 	{
+		revisit(temp_function->entry->st_name);
 		hide_scope();
 		$$ = (ASTNode*)temp_function;
-		astTraversal($$); // testing
 	}
 ;
 
-function_head: { declare = 1; } DEFINE ID LPAREN optional_parameters RPAREN COLON return_type 
+function_head: { function_decl = 1; } DEFINE ID LPAREN optional_parameters RPAREN COLON return_type 
 	{ 
-		declare = 0; 
+		function_decl = 0; 
 
 		ASTNodeRetType *temp = (ASTNodeRetType*)$8;
 		temp_function = (ASTNodeFuncDecl*)
@@ -924,9 +913,20 @@ int main (int argc, char *argv[]){
 
 	printf("Parsing finished!\n");
 
+	revisitQueue *q = search_prev_queue("print");
+	if(q == NULL){
+		if(queue != NULL){ // check if not empty
+			queue = queue->next;
+		}
+	}else{
+		q->next = q->next->next;
+	}
+
 	if(queue!=NULL){
 		printf("Warning: Something has not been checked in the revisit queue!\n");
 	}
+
+	func_declare("print",VOID_TYPE,1,NULL);
 	
 	// symbol table dump
 	yyout = fopen("symtab_dump.out", "w");

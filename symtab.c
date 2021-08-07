@@ -7,6 +7,7 @@
 /* current scope */
 int cur_scope = 0;
 int declare = 0; // 1: declare , 0: not declare
+int function_decl = 0; // 1: declaring function, 0: not
 
 // intialize hast table data structure
 void init_hash_table(){
@@ -45,7 +46,7 @@ void insert(char *name, int len, int type, int lineno){
 			l->lines->next = NULL;
 			l->next = hash_table[hashval];
 			hash_table[hashval] = l; 
-			printf("Inserted %s for the first time with linenumber %d!\n", name, lineno); // error checking
+			//printf("Inserted %s for the first time with linenumber %d!\n", name, lineno); // error checking
 		}else{
 
 			// add it to check it again later
@@ -59,7 +60,7 @@ void insert(char *name, int len, int type, int lineno){
         	l->lines->next = NULL;
         	l->next = hash_table[hashval];
         	hash_table[hashval] = l;
-        	printf("Inserted %s at line %d to check it again later!\n", name, lineno);
+        	//printf("Inserted %s at line %d to check it again later!\n", name, lineno);
 
         	/* Adding identifier to the revisit queue! */
         	add_to_queue(l,l->st_name, PARAM_CHECK);
@@ -71,14 +72,14 @@ void insert(char *name, int len, int type, int lineno){
 		
 		// just add line number to the dump
 		if(declare == 0){
-			l->scope = cur_scope;
+			
 			RefList *t = l->lines;
 			while (t->next != NULL) t = t->next;
 			/* add linenumber to reference list */
 			t->next = (RefList*) malloc(sizeof(RefList));
 			t->next->lineno = lineno;
 			t->next->next = NULL;
-			printf("Found %s again at line %d!\n", name, lineno);
+			//printf("Found %s again at line %d!\n", name, lineno);
 		
 			
 		}
@@ -89,6 +90,18 @@ void insert(char *name, int len, int type, int lineno){
 			if(l->scope == cur_scope){
 				fprintf(stderr, "A multiple declaration of variable %s at line %d\n", name, lineno);
  				exit(1);
+			}
+			/* other scope - but function declaration */
+			else if(function_decl == 1){
+
+				// find the last reference
+				RefList *t = l->lines;
+				while(t->next!=NULL) t=t->next;
+
+				/* add linenumber to reference list */
+				t->next = (RefList*) malloc(sizeof(RefList));
+				t->next->lineno = lineno;
+				t->next->next = NULL;
 			}
 			// if in another scope - create a new entry
 			else{
@@ -105,7 +118,7 @@ void insert(char *name, int len, int type, int lineno){
 				/* add to hashtable */
 				l->next = hash_table[hashval];
 				hash_table[hashval] = l; 
-				printf("Inserted %s for a new scope with linenumber %d!\n", name, lineno);
+				//printf("Inserted %s for a new scope with linenumber %d!\n", name, lineno);
 			}
 		}
 	}
@@ -118,16 +131,10 @@ listNode *lookup(char *name){ /* return symbol if found or NULL if not found */
 	return l; // NULL is not found
 }
 
-listNode *lookup_scope(char *name, int scope){ /* return symbol if found or NULL if not found */
-	unsigned int hashval = hash(name);
-	listNode *l = hash_table[hashval];
-	while ((l != NULL) && (strcmp(name,l->st_name) != 0) && (scope != l->scope)) l = l->next;
-	return l; // NULL is not found
-}
 
 void hide_scope(){ /* hide the current scope */
 	listNode *l;
-	printf("Hiding scope %d: \n", cur_scope);
+	//printf("Hiding scope %d: \n", cur_scope);
 
 	/* for all the lists */
 	for (int i = 0; i < SIZE; i++){
@@ -135,7 +142,7 @@ void hide_scope(){ /* hide the current scope */
 			l = hash_table[i];
 			/* Find the first item that is from another scope */
 			while(l != NULL && l->scope == cur_scope){
-				printf("Hiding %s..\n", l->st_name);
+				//printf("Hiding %s..\n", l->st_name);
 				l = l->next;
 			}
 			/* Set the list equal to that item */
@@ -243,50 +250,55 @@ int func_declare(char *name, int ret_type, int num_of_pars, Parameter *parameter
 	/* lookup entry */
 	listNode *l = lookup(name);
 	
-	/* if type is not defined yet */
-	if(l->st_type != UNDEF){
-		/* entry is of function type */
-		l->st_type = FUNCTION_TYPE;
-		
-		/* return type is ret_type */
-		l->inf_type = ret_type;
-		
-		/* parameter stuff */
-		l->num_of_pars = num_of_pars;
-		l->parameters = parameters;
-		
-		return 0; /* success */
-	}
-	/* already declared error */
-	else{
-		fprintf(stderr, "Function %s already declared!\n", name);
-		exit(1);
+	if(l != NULL){
+		/* if type is not defined yet */
+		if(l->st_type == UNDEF){
+			/* entry is of function type */
+			l->st_type = FUNCTION_TYPE;
+
+			/* return type is ret_type */
+			l->inf_type = ret_type;
+
+			/* parameter stuff */
+			l->num_of_pars = num_of_pars;
+			l->parameters = parameters;
+
+			return 0; /* success */
+		}
+		/* already declared error */
+		else{
+			fprintf(stderr, "Function %s already declared!\n", name);
+			exit(1);
+		}
 	}
 }
 
-int func_param_check(char *name, int num_of_pars, Parameter*parameters){ // check parameters
+int func_param_check(char *name, int num_of_calls, int **par_types, int *num_of_pars){ // check parameters
 	int i, type_1, type_2;
 	
 	/* lookup entry */
 	listNode *l = lookup(name);
-	
-	/* check number of parameters */
-	if(l->num_of_pars != num_of_pars){
-		fprintf(stderr, "Function call of %s has wrong num of parameters!\n", name);
-		exit(1);
-	}
-	
-	/* check if parameters are compatible */
-	for(i = 0; i < num_of_pars; i++){
-		/* type of parameter in function declaration */
-		type_1 = l->parameters[i].par_type; 
-		
-		/* type of parameter in function call*/
-		type_2 = parameters[i].par_type; 
-		
-		/* check compatibility for function call */
-		get_result_type(type_1, type_2, NONE);
-		/* error occurs automatically in the function */
+
+
+		/* for all function calls */
+	for(i = 0 ; i < num_of_calls ; i++){
+		/* check number of parameters */
+		if(l->num_of_pars != num_of_pars[i]){
+			fprintf(stderr,"Function call of %s has wrong num of parameters!\n",name);
+			exit(1);
+		}
+		/* check if parameters are compatible */
+		for(int j = 0; j < num_of_pars[i]; j++){
+			/* type of parameter in function declaration */
+			type_1 = l->parameters[j].par_type; 
+
+			/* type of parameter in function call*/
+			type_2 = par_types[i][j]; 
+
+			/* check compatibility for function call */
+			get_result_type(type_1, type_2, NONE);
+			/* error occurs automatically in the function */
+		}
 	}
 	
 	return 0; /* success */
@@ -309,6 +321,11 @@ void add_to_queue(listNode *entry, char *name, int type){
 		q->revisit_type = type;
 		q->next = NULL;
 		
+		/* additional info */
+    	if(type == PARAM_CHECK){
+    	  q->num_of_calls = 0;
+    	}
+
 		/* q "becomes" the queue */
 		queue = q;
 	}
@@ -324,52 +341,46 @@ void add_to_queue(listNode *entry, char *name, int type){
 		q->next->st_name = name;
 		q->next->revisit_type = type;
 		q->next->next = NULL;
+
+		/* additional info */
+    	if(type == PARAM_CHECK){
+    	  q->next->num_of_calls = 0;
+    	}
 	}		
 }
 
 // revisit entry by also removing it from queue
 int revisit(char *name){
 
-	revisitQueue *q;
+	revisitQueue *q = search_queue(name);
 	
-	/* special case - first entry */
-	if( strcmp(queue->st_name, name) == 0 ){
-		
-		/* revisit entry depending on the type */
-		switch(queue->revisit_type){
-			case PARAM_CHECK:
-				/* TO DO: run parameter check */
-				break;
-			/* ... */
-		}
-		
-		/* remove entry by setting queue to "next" */
-		queue = queue->next;
-		
-		return 0; // success
+	if(q==NULL){
+		return -1;
 	}
 	
-	/* search for the entry that points to it */
-	q = queue;
-	while( strcmp(q->next->st_name, name) != 0 ) q = q->next;
-	
-	/* check if entry was not found */
-	if(q == NULL){
-		return 1;  // not found
-	}
-	
-	/* revisit entry depending on the type */
-	switch(q->next->revisit_type){
+	switch (q->revisit_type)
+	{
 		case PARAM_CHECK:
-			/* TO DO: run parameter check */
+			if(!func_param_check(name,q->num_of_calls,q->par_types,q->num_of_pars)){
+				printf("Successful Parameter Check of %s\n", name);
+			}
+
+			/* remove entry by making it point to it's next */
+      		revisitQueue *q2 = search_prev_queue(name);
+      		if(q2 == NULL){ /* special case: first entry */
+      		  queue = queue->next;
+      		}
+      		else{
+      		  q2->next = q2->next->next;
+      		}
+
 			break;
-		/* ... */
+
+		case ASSIGN_CHECK:
+			/* run assignment check */
+			break;
 	}
-	
-	/* remove entry by making the previous entry point at */
-	/* the "next" of the entry that we want to remove  */
-	q->next = q->next->next;	
-	
+
 	return 0; // success
 }
 
@@ -378,10 +389,33 @@ revisitQueue *search_queue(char *name){
 	revisitQueue *q;
 
 	q = queue;
-	while(strcmp(q->st_name,name)!=0) q = q->next;
+	while((q != NULL) && (strcmp(q->st_name,name)!=0)) q = q->next;
 
 	return q;
 }
+
+
+revisitQueue *search_prev_queue(char *name){
+
+	revisitQueue *q;
+
+  	/* queue is empty */
+  	if(queue == NULL){
+  	  return NULL;
+  	}
+
+  	/* special case - first entry */
+  	if( strcmp(queue->st_name, name) == 0 ){
+  	  return NULL;
+  	}
+
+  	/* search for the entry */
+  	q = queue;
+  	while( (q != NULL) && (strcmp(q->next->st_name, name) != 0) ) q = q->next;
+
+  	return q;
+}
+
 
 // dump file
 void revisit_dump(FILE *of){
@@ -397,6 +431,7 @@ void revisit_dump(FILE *of){
   		fprintf(of, "%-13s", q->st_name);
   		if(q->revisit_type == PARAM_CHECK){
   			fprintf(of,"%s","Parameter Check");
+			fprintf(of,"for %d function calls",q->num_of_calls);
 		}
 		// more later on
 		fprintf(of, "\n");

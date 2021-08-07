@@ -76,16 +76,7 @@ typedef enum Range_op{
 }Range_op;
 
 
-/**
- * Type value definition
- **/
-typedef union  Value
-{
-    int ival;
-    double fval;
-    char cval;
-    char* sval;
-}Value;
+
 
 
 // Abstract syntax tree structure 

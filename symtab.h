@@ -10,6 +10,17 @@
 #define BY_VALUE 1
 #define BY_REFER 2
 
+/**
+ * Type value definition
+ **/
+typedef union  Value
+{
+    int ival;
+    double fval;
+    char cval;
+    char* sval;
+}Value;
+
 /* parameter struct */
 typedef struct Parameter{
 	int par_type;
@@ -23,7 +34,6 @@ typedef struct Parameter{
 typedef struct RefList{ 
     int lineno;
     struct RefList *next;
-    int type;
 }RefList;
 
 // struct that represents a list node
@@ -58,9 +68,9 @@ typedef struct revisitQueue{
     int revisit_type;
 
 	// parameters
-	int *par_types;
-	int num_of_pars;
-
+	int **par_types;
+	int *num_of_pars;
+	int num_of_calls;
     // maybe additional information to simplify the process ...
 
     struct revisitQueue *next;
@@ -68,6 +78,7 @@ typedef struct revisitQueue{
 }revisitQueue;
 
 #define PARAM_CHECK 1 /* Check parameters of function call when functions gets declared */
+#define ASSIGN_CHECK 2 /* check assignment when function all part ot the expression */
 
 /* the hash table */
 static listNode **hash_table;
@@ -91,10 +102,11 @@ int get_type(char *name); // get the type of an entry
 // Function Declaration and Parameters
 Parameter def_param(int par_type, char *param_name, int passing, Value val); // define parameter
 int func_declare(char *name, int ret_type, int num_of_pars, Parameter *parameters); // declare function
-int func_param_check(char *name, int num_of_pars, Parameter *parameters); // check parameters
+int func_param_check(char *name, int num_of_calls, int **par_types, int *num_of_pars); // check parameters
 
 // Revisit Queue function
 void add_to_queue(listNode	*entry,char *name, int type); // add to queue
 int revisit(char *name); // revisit entry by also removing it from queue
 void revisit_dump(FILE *of); // dump file
 revisitQueue *search_queue(char *name);
+revisitQueue *search_prev_queue(char*name);
