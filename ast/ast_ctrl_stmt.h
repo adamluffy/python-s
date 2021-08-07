@@ -43,7 +43,7 @@ typedef struct ASTNodeWhen{
 
     // body
     struct ASTNode *when_branch;
-
+    struct ASTNode *else_branch;
 
 }ASTNodeWhen;
 
@@ -57,9 +57,19 @@ typedef struct ASTNodeWhenBody{
     struct ASTNode **when_entries;
     int entries_count;
 
-    struct ASTNode *else_branch;
+    
 
 }ASTNodeWhenBody;
+
+// Node for when condition expressions
+typedef struct ASTNodeWhenConds{
+
+    enum Node_Type type;
+
+    struct ASTNode **expressions;
+    int expr_count;
+
+}ASTNodeWhenConds;
 
 
 // Node for single entry
@@ -73,14 +83,17 @@ typedef struct ASTNodeWhenEntry{
 
     //body
     struct ASTNode *entry_branch;
+    
 
 }ASTNodeWhenEntry;
+
 
 
 ASTNode *newASTIfNode(ASTNode *condition, ASTNode *if_branch, ASTNode **elsif_branches, 
 	int elseif_count, ASTNode *else_branch);
 ASTNode *newASTElsifNode(ASTNode *condition, ASTNode *elsif_branch);
 
-ASTNode *newASTWhenNode(ASTNode *conditon_expr, ASTNode *when_branch);
-ASTNode *newASTWhenBodyNode(ASTNode **entries, ASTNode *else_branch, int entries_count);
+ASTNode *newASTWhenNode(ASTNode *conditon_expr, ASTNode *when_branch ,ASTNode *else_branch);
+ASTNode *newASTWhenBodyNode(ASTNode **entries,  int entries_count);
 ASTNode *newASTWhenEntryNode(ASTNode **expressions, int expr_count, ASTNode *entry_branch);
+ASTNode *newASTWhenCondsNode(ASTNode **expressions, int expr_count, ASTNode *expression);

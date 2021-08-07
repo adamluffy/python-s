@@ -1,6 +1,7 @@
 # program: declaration 
 # main function 
 # declaration 
+int i;
 char c = 'c';
 double val = 2.5, res[6];
 double p;
@@ -26,7 +27,7 @@ for(i in 1..10){
         }
     }
 
-    if i!=2 and val==4 {
+    if i!=2 and i==4 {
         print("iteration: 3\n")
     }
 }

@@ -211,6 +211,28 @@ int get_result_type(int type1, int type2, int opType){
 				type_error(type1, type2, opType);
 			}
 			break;
+		
+		case IN_OP:
+
+			if(type1 == INT_TYPE){
+
+				if(type2 == INT_TYPE){
+					return INT_TYPE;
+				}else{
+					type_error(type1, type2, opType);
+				}
+			}else if(type1 == CHAR_TYPE){
+				
+				if(type2 == CHAR_TYPE){
+					return CHAR_TYPE;
+				}else{
+					type_error(type1, type2, opType);
+				}
+			}else{
+				type_error(type1, type2, opType);
+			}
+
+			break;
 
 		case RANGE_OP:
 
@@ -226,7 +248,7 @@ int get_result_type(int type1, int type2, int opType){
 			}else if(type2 == CHAR_TYPE){
 
 				if(type2 == CHAR_TYPE) { 
-					return INT_TYPE;
+					return CHAR_TYPE;
 				}
 				else {
 					type_error(type1, type2, opType);

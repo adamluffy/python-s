@@ -10,6 +10,7 @@ typedef enum Node_Type{
     WHEN_NODE,
     WHEN_BODY_NODE,
     WHEN_ENTRY_NODE,
+    WHEN_CONDS_EXPR_NODE,
 	FOR_NODE,    // for statement
     FOR_CONDITION_NODE,
 	WHILE_NODE,  // while statement
@@ -99,3 +100,5 @@ typedef struct ASTNode
 ASTNode *newASTNode(Node_Type type, ASTNode *left, ASTNode *right);
 void astPrintNode(ASTNode *node);
 void astTraversal(ASTNode *node);
+
+int expressionDataType(ASTNode *node);

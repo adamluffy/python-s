@@ -26,25 +26,26 @@ ASTNode *newASTElsifNode(ASTNode *condition, ASTNode *elsif_branch){
 }
 
 
-ASTNode *newASTWhenNode(ASTNode *conditon_expr, ASTNode *when_branch){
+ASTNode *newASTWhenNode(ASTNode *conditon_expr, ASTNode *when_branch, ASTNode *else_branch){
 
     ASTNodeWhen *val = malloc(sizeof(ASTNodeWhen));
 
     val->type = WHEN_NODE;
     val->condition_expr = conditon_expr;
     val->when_branch = when_branch;
+    val->else_branch = else_branch;
 
     return (struct ASTNode*)val;
 }
 
 
-ASTNode *newASTWhenBodyNode(ASTNode **entries, ASTNode *else_branch, int entries_count){
+ASTNode *newASTWhenBodyNode(ASTNode **entries , int entries_count){
 
     ASTNodeWhenBody *val = malloc(sizeof(ASTNodeWhenBody));
 
     val->type = WHEN_BODY_NODE;
     val->when_entries = entries;
-    val->else_branch = else_branch;
+    val->entries_count = entries_count;
 
     return (struct ASTNode*)val;
 }
@@ -60,4 +61,28 @@ ASTNode *newASTWhenEntryNode(ASTNode **expressions, int expr_count, ASTNode *ent
     val->expr_count = expr_count;
 
     return (struct ASTNode *)val;
+}
+
+
+ASTNode *newASTWhenCondsNode(ASTNode **expressions, int expr_count, ASTNode *expression){
+
+    ASTNodeWhenConds *val = malloc(sizeof(ASTNodeWhenConds));
+
+    val->type =  WHEN_CONDS_EXPR_NODE;
+
+    if(expressions == NULL){
+        expressions = (ASTNode**)malloc(sizeof(ASTNode*));
+        expressions[0] = expression;
+        expr_count = 1;
+    }else{
+        expressions = (ASTNode**)realloc(expressions,
+            (expr_count+1)*sizeof(ASTNode*));
+        expressions[expr_count] = expression;
+        expr_count++;
+    }
+
+    val->expressions = expressions;
+    val->expr_count = expr_count;
+
+    return (struct ASTNode*)val;
 }

@@ -99,6 +99,7 @@
 %type <node> increment postfix_inc prefix_inc
 %type <node> control_structure_body
 %type <node> control_statement if_statement elif_part optional_elif else_part optional_else
+%type <node> when_statement when_entry when_else when_condition 
 %type <node> loop_statement for_statement for_condition while_statement
 %type <node> function optional_parameters parameters param_init
 %type <par> parameter
@@ -311,7 +312,7 @@ simple_statement: CONTINUE
 ;
 
 control_statement: if_statement { $$ = $1; }
-	| when_statement { $$ = NULL; } // will do this later
+	| when_statement { $$ = $1; } // will do this later
 ;
 
 /* if statement grammar*/
@@ -352,7 +353,25 @@ optional_else: else_part { $$ = $1; }
 
 /* when statement grammar */
 
-when_statement: WHEN when_subject LBRACE when_entry RBRACE;
+when_statement: WHEN when_subject LBRACE when_entry when_else RBRACE
+	{
+		ASTNodeWhenBody *temp_body = malloc(sizeof(ASTNodeWhenBody));
+		temp_body->type = WHEN_BODY_NODE;
+		temp_body->when_entries = elsifs;
+		temp_body->entries_count = elseif_count;
+		elsifs = NULL;
+		elseif_count = 0;
+		ASTNode* temp = (ASTNode*)temp_body;
+
+		if($2 != NULL){
+			$$ = newASTWhenNode(NULL, temp, $5);
+		}else{
+			$$ = newASTWhenNode($2, temp, $5);
+		}
+
+		
+	}
+;
 
 when_subject: parenthesis_expression 
 	{
@@ -362,19 +381,41 @@ when_subject: parenthesis_expression
 	{ $$ = NULL; }
 ;
 
-when_entry: when_condition ARROW control_structure_body COMMA when_entry 
+when_entry: when_entry COMMA when_condition ARROW control_structure_body  
+		{
+			ASTNodeWhenConds *temp = (ASTNodeWhenConds*)$3;
+			$$ = newASTWhenEntryNode(temp->expressions, temp->expr_count,$5);
+			add_elseif($$);
+		}
 	| when_condition ARROW control_structure_body
-	| when_else;
+		{
 
-when_else: ELSE ARROW control_structure_body | /* empty */;
+			ASTNodeWhenConds *temp = (ASTNodeWhenConds*)$1;
+			$$ = newASTWhenEntryNode(temp->expressions, temp->expr_count,$3);
+			add_elseif($$);
+			
+		}
+;
+
+when_else: COMMA ELSE ARROW control_structure_body 
+		{
+			$$ = $4;
+		}
+	| /* empty */
+		{
+			$$ = NULL;
+		}	
+;
 
 when_condition: expression 
 		{
-			add_to_exprs($1);
+			$$ = newASTWhenCondsNode(NULL,0,$1);
 		}
 	| when_condition COMMA expression 
 		{
-			add_to_exprs($3);
+			ASTNodeWhenConds *temp = (ASTNodeWhenConds*)$1;
+			$$ = newASTWhenCondsNode(temp->expressions, 
+				temp->expr_count, $3);
 		}
 ;
 
@@ -598,41 +639,45 @@ else_expression: ELSE expression
 ;
 
 /* when expression */
-when_expression: WHEN when_subject LBRACE when_entry_expr RBRACE
+when_expression: WHEN when_subject LBRACE when_entry_expr when_else_expr RBRACE
 	{
+		ASTNodeWhenBody *temp_body = malloc(sizeof(ASTNodeWhenBody));
+		temp_body->type = WHEN_BODY_NODE;
+		temp_body->when_entries = elsifs;
+		temp_body->entries_count = elseif_count;
+		elsifs = NULL;
+		elseif_count = 0;
+		ASTNode* temp = (ASTNode*)temp_body;
+
 		if($2 != NULL){
-			$$ = newASTWhenNode($2, $4);
+			$$ = newASTWhenNode(NULL, temp, $5);
 		}else{
-			$$ = newASTWhenNode(NULL, $4);
+			$$ = newASTWhenNode($2, temp, $5);
 		}
 
 		
 	}
 ;
 
-when_entry_expr: when_condition ARROW expression COMMA when_entry_expr 
+when_entry_expr: when_entry_expr COMMA when_condition ARROW expression  
 		{
-			$$ = newASTWhenEntryNode(expressions, ec, $3);
-			expressions = NULL;
-			ec = 0;
+
+			ASTNodeWhenConds *temp = (ASTNodeWhenConds*)$3;
+			$$ = newASTWhenEntryNode(temp->expressions, temp->expr_count,$5);
+			add_elseif($$);
 			
 		}
 	| when_condition ARROW expression
 		{
-			$$ = newASTWhenEntryNode(expressions, ec, $3);
-			expressions = NULL;
-			ec = 0;
-			
+			ASTNodeWhenConds *temp = (ASTNodeWhenConds*)$1;
+			$$ = newASTWhenEntryNode(temp->expressions, temp->expr_count,$3);
+			add_elseif($$);
 		}
-	| when_else_expr
-		{
-			$$ = $1;
-		}	
 ;
 
-when_else_expr: ELSE ARROW expression 
+when_else_expr: COMMA ELSE ARROW expression 
 		{
-			$$ = $3;
+			$$ = $4;
 		}
 	| /* empty */
 	{
@@ -732,6 +777,17 @@ parameter: { declare = 1; } type param_init
 	{ 
 		declare = 0; 
 		ASTNodeVariable *temp = (ASTNodeVariable*)$3;
+
+		if(temp->symtab_item->st_type == UNDEF){
+		
+			set_type(temp->symtab_item->st_name, $2, UNDEF);
+
+		}else if(temp->symtab_item->st_type == ARRAY_TYPE){
+			
+			set_type(temp->symtab_item->st_name,ARRAY_TYPE,$2);
+			
+		}
+
 		$$ = def_param($2, temp->symtab_item->st_name,0);
 	}
 ;

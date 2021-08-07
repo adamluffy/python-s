@@ -5,6 +5,9 @@ typedef struct ASTNodeArithm{
 
     enum Node_Type type;
 
+    // data type result
+    int data_type;
+
     // operator
     enum Arithm_op op;
 
@@ -18,6 +21,9 @@ typedef struct ASTNodeArithm{
 typedef struct ASTNodeBool{
 
     enum Node_Type type;
+
+    // data type result
+    int data_type;
 
     // operator 
     enum Bool_op op;
@@ -33,6 +39,8 @@ typedef struct ASTNodeRel{
 
     enum Node_Type type;
 
+    int data_type;
+
     // operator 
     enum Relation_op op;
 
@@ -46,6 +54,8 @@ typedef struct ASTNodeRel{
 typedef struct ASTNodeEql{
 
     enum Node_Type type;
+
+    int data_type;
 
     // operator 
     enum Equal_op op;
@@ -62,6 +72,8 @@ typedef struct ASTNodeIn{
 
     enum Node_Type type;
 
+    int data_type;
+
     // operator
     enum In_op op;
 
@@ -77,6 +89,8 @@ typedef struct ASTNodeRange{
 
     enum Node_Type type;
 
+    int data_type;
+    
     // operator
     enum Range_op op;
 
