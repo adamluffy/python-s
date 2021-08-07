@@ -224,13 +224,14 @@ int get_type(char *name){
 
 // Function Declaration and Parameters
 
-Parameter def_param(int par_type, char *param_name, int passing){ // define parameter
+Parameter def_param(int par_type, char *param_name, int passing, Value val){ // define parameter
 	Parameter param; /* Parameter struct */
 	
 	/* set the information */
 	param.par_type = par_type;
 	strcpy(param.param_name, param_name);
 	param.passing = passing;
+	param.val = val;
 	
 	/* return the structure */
 	return param;

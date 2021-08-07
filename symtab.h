@@ -83,7 +83,7 @@ void set_type(char *name, int st_type, int inf_type); // set the type of an entr
 int get_type(char *name); // get the type of an entry
 
 // Function Declaration and Parameters
-Parameter def_param(int par_type, char *param_name, int passing); // define parameter
+Parameter def_param(int par_type, char *param_name, int passing, Value val); // define parameter
 int func_declare(char *name, int ret_type, int num_of_pars, Parameter *parameters); // declare function
 int func_param_check(char *name, int num_of_pars, Parameter *parameters); // check parameters
 

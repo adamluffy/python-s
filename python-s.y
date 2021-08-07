@@ -788,7 +788,7 @@ parameter: { declare = 1; } type param_init
 			
 		}
 
-		$$ = def_param($2, temp->symtab_item->st_name,0);
+		$$ = def_param($2, temp->symtab_item->st_name,0, temp->symtab_item->val);
 	}
 ;
 
