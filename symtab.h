@@ -73,6 +73,10 @@ typedef struct revisitQueue{
 	int num_of_calls;
     // maybe additional information to simplify the process ...
 
+	// assignment expression nodes
+	void **nodes;
+	int num_of_assigns;
+	
     struct revisitQueue *next;
 
 }revisitQueue;

@@ -24,6 +24,8 @@
 #include"ast_simple.c"
 #include"ast_loop.c"
 
+int cont_revisit = 0; // 1: contains revisit, 0: not
+
 ASTNode *newASTNode(Node_Type type, ASTNode *left, ASTNode *right){
 
     ASTNode *val = (ASTNode*)malloc(sizeof(ASTNode));
@@ -401,6 +403,12 @@ int expressionDataType(ASTNode *node){
     switch(node->type){
         case ARITHM_NODE: /* arithmetic expression */
             temp_arithm = (ASTNodeArithm *) node;
+
+			temp_arithm->data_type = get_result_type(
+				expressionDataType(temp_arithm->left),
+				expressionDataType(temp_arithm->right),
+				ARITHM_OP
+			);
             return temp_arithm->data_type; 
             break;
 
@@ -454,7 +462,13 @@ int expressionDataType(ASTNode *node){
 
         case FUNC_CALL:   /* function call */
             temp_func_call = (ASTNodeFuncCall *) node;
-            return 1; /* just for testing */
+            
+			if(temp_func_call->entry->st_type == UNDEF){
+				if(temp_func_call->entry->inf_type == UNDEF){
+					cont_revisit = 1;
+					return INT_TYPE;
+				}
+			}
             return temp_func_call->entry->inf_type; /* return type */
             break;
 

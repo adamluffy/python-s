@@ -267,11 +267,47 @@ assignment: variable ASSIGN expression
 		ASTNodeVariable *temp = (ASTNodeVariable*)$1;
 		$$ = newASTAssignNode(temp->symtab_item, $3);
 
-		get_result_type(
-			get_type(temp->symtab_item->st_name),
-			expressionDataType($3),
-			NONE
-		);
+		int type1 = get_type(temp->symtab_item->st_name);
+		int type2 = expressionDataType($3);
+
+		if(cont_revisit == 1){
+			
+			// search if entry exists
+			revisitQueue *q = search_queue(temp->symtab_item->st_name);
+			if(q == NULL){
+				add_to_queue(temp->symtab_item, temp->symtab_item->st_name, ASSIGN_CHECK);
+				q = search_queue(temp->symtab_item->st_name);	
+			}
+
+			if(q->num_of_assigns == 0){
+				q->nodes = (void**)malloc(sizeof(void*));
+			}else{
+				q->nodes = (void**)realloc(q->nodes, (q->num_of_assigns + 1) * sizeof(void*));
+
+			}
+
+			/* add info of assignment */
+			q->nodes[q->num_of_assigns] = (void*) $3;
+
+			/* increment number of assignments */
+			q->num_of_assigns++;
+
+			/* reset revisit flag */
+			cont_revisit = 0;
+
+			printf("Assignment revisit for %s at line %d\n", temp->symtab_item->st_name, lineno);
+		
+		}else{
+
+			get_result_type(
+				type1,
+				type2,
+				NONE
+			);
+
+		}
+
+		
 	}
 ;
 
@@ -920,6 +956,18 @@ int main (int argc, char *argv[]){
 		}
 	}else{
 		q->next = q->next->next;
+	}
+
+	/* perform the remaining checks (assignments) */
+	if(queue != NULL){
+		revisitQueue *cur;
+		cur = queue;
+		while(cur != NULL){
+			if(cur->revisit_type == ASSIGN_CHECK){
+				revisit(cur->st_name);
+			}
+			cur = cur->next;
+		}
 	}
 
 	if(queue!=NULL){

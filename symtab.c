@@ -323,8 +323,13 @@ void add_to_queue(listNode *entry, char *name, int type){
 		
 		/* additional info */
     	if(type == PARAM_CHECK){
-    	  q->num_of_calls = 0;
-    	}
+    	
+		  q->num_of_calls = 0;
+    	
+		}else if(type == PARAM_CHECK){
+
+			q->num_of_assigns = 0;
+		}
 
 		/* q "becomes" the queue */
 		queue = q;
@@ -345,14 +350,18 @@ void add_to_queue(listNode *entry, char *name, int type){
 		/* additional info */
     	if(type == PARAM_CHECK){
     	  q->next->num_of_calls = 0;
-    	}
+    	}else if(type==ASSIGN_CHECK){
+			q->next->num_of_assigns = 0;
+		}
 	}		
 }
 
 // revisit entry by also removing it from queue
 int revisit(char *name){
 
+	int type1, type2;
 	revisitQueue *q = search_queue(name);
+	revisitQueue *q2;
 	
 	if(q==NULL){
 		return -1;
@@ -366,7 +375,7 @@ int revisit(char *name){
 			}
 
 			/* remove entry by making it point to it's next */
-      		revisitQueue *q2 = search_prev_queue(name);
+      		q2 = search_prev_queue(name);
       		if(q2 == NULL){ /* special case: first entry */
       		  queue = queue->next;
       		}
@@ -377,7 +386,30 @@ int revisit(char *name){
 			break;
 
 		case ASSIGN_CHECK:
-			/* run assignment check */
+			//run assignment check for each assignment
+			type1 = get_type(q->entry->st_name);
+
+			for(int i=0;i<q->num_of_assigns;i++){
+				type2 = expressionDataType(q->nodes[i]);
+
+				// perform assignment check
+				get_result_type(
+					type1,
+					type2,
+					NONE
+				);
+			}
+
+
+			/* remove entry by making it point to it's next */
+      		q2 = search_prev_queue(name);
+      		if(q2 == NULL){ /* special case: first entry */
+      		  queue = queue->next;
+      		}
+      		else{
+      		  q2->next = q2->next->next;
+      		}
+
 			break;
 	}
 
@@ -432,6 +464,9 @@ void revisit_dump(FILE *of){
   		if(q->revisit_type == PARAM_CHECK){
   			fprintf(of,"%s","Parameter Check");
 			fprintf(of,"for %d function calls",q->num_of_calls);
+		}else if(q->revisit_type == ASSIGN_CHECK){
+			fprintf(of,"%s","Assignment Check ");
+  			fprintf(of,"for %d assignments",q->num_of_assigns);
 		}
 		// more later on
 		fprintf(of, "\n");
