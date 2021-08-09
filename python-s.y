@@ -4,6 +4,7 @@
 	#include <string.h>
 	#include"semantic.c"
 	#include"symtab.c"
+	#include"code_generation.c"
 	#include"ast/ast.c"
 
 	extern FILE *yyin;
@@ -509,9 +510,15 @@ while_statement: WHILE expression control_structure_body
 variable: ID	{ $$ = newASTVariableNode($1); } 
 	| ID array
 		{
-			$1->st_type = ARRAY_TYPE;
-			$1->array_size = $2;
-			$$ = newASTVariableNode($1);
+			if(declare == 1){
+				$1->st_type = ARRAY_TYPE;
+				$1->array_size = $2;
+				$$ = newASTVariableNode($1);
+			}else{
+				$1->st_type = ARRAY_TYPE;
+				$$ = newASTVariableNode($1);
+			}
+			
 		}
 ;
 
@@ -523,8 +530,9 @@ array: LBRACK expression RBRACK
 			fprintf(stderr, "Array declaration at %d contains expression!\n", lineno);
 			exit(1);
 		}
-		else if($2->type == CONST_NODE && declare == 0){
+		else if($2->type == CONST_NODE){
 			ASTNodeConst *temp = (ASTNodeConst*)$2;
+			printf("array size: %d\n",temp->val.ival);
 			if(temp->const_type == INT_TYPE) {
 				$$ = temp->val.ival;
 			}
@@ -986,5 +994,7 @@ int main (int argc, char *argv[]){
 	revisit_dump(yyout);
 	fclose(yyout);
 	
+	generate_code();
+
 	return flag;
 }

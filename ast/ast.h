@@ -20,7 +20,7 @@ typedef enum Node_Type{
 	FUNC_CALL,   // function call
     CALL_PARAMS,  // function call parameters
 	// expressions
-	ARITHM_NODE, // arithmetic expression
+	ARITHM_NODE, // arithmetic expression 
     // RANGE_NODE,   // range expression
 	BOOL_NODE,   // boolean expression
 	REL_NODE,    // relational expression

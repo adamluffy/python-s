@@ -63,6 +63,7 @@ void astPrintNode(ASTNode *node){
 	ASTNodeRange *temp_range;
 	ASTNodeVariable *temp_variable;
 	ASTNodeFuncDecl *temp_func_decl;
+	ASTNodeCallParams *temp_call_params;
 	ASTNodeDeclParams *temp_decl_params;
 	ASTNodeRetType *temp_ret_type;
 	ASTNodeReturn *temp_return;
@@ -148,6 +149,10 @@ void astPrintNode(ASTNode *node){
 		case FUNC_CALL:
 			temp_func_call = (struct ASTNodeFuncCall *) node;
 			printf("Function Call Node with %d parameters\n", temp_func_call->num_of_pars);
+			break;
+		case CALL_PARAMS:
+			temp_call_params = (struct ASTNodeCallParams *) node;
+			printf("Function Call Parameters Node with %d parameters\n", temp_call_params->num_of_pars);
 			break;
 		case ARITHM_NODE:
 			temp_arithm = (struct ASTNodeArithm *) node;

@@ -6,7 +6,7 @@ char c = 'c';
 double val = 2.5, res[6];
 double p;
 
-p = res[0]
+
 
 for(i in 2..10){
 
